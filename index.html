@@ -1,44 +1,60 @@
 <!doctype html>
-<html lang="ko">
+<html lang="ko" data-theme="dark">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Basedapp Simulator & Analyzer</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    :root{
-      color-scheme: dark light;
-      --bg:#0e0f12; --panel:#16181d; --border:#242833;
-      --muted:#98a2af; --accent:#ff6a-3d; --ok:#2ad7a3; --danger:#ff6b6b;
+    /* 다크 모드 (기본) */
+    :root {
+      color-scheme: dark;
+      --bg: #0e0f12; --panel: #16181d; --border: #242833;
+      --text-main: #e8eaee; --text-muted: #98a2af;
+      --accent: #ff6a3d; --ok: #2ad7a3; --danger: #ff6b6b;
       --ring: 0 0 0 3px rgba(255,106,61,.35);
+      --input-bg: #101217;
     }
-    body{ background:var(--bg); color:#e8eaee }
-    .card{ background:var(--panel); border:1px solid var(--border); }
-    .muted{ color:var(--muted) }
-    .btn-accent{ background:var(--accent); color:white }
-    .btn-accent:hover{ filter:brightness(1.05) }
+    /* 라이트 모드 */
+    [data-theme='light'] {
+      color-scheme: light;
+      --bg: #f0f2f5; --panel: #ffffff; --border: #dcdfe3;
+      --text-main: #1f2328; --text-muted: #656d76;
+      --accent: #f56565; --ok: #38a169; --danger: #e53e3e;
+      --ring: 0 0 0 3px rgba(245,101,101,.35);
+      --input-bg: #f0f2f5;
+    }
+    body{ background: var(--bg); color: var(--text-main); transition: background .2s, color .2s; }
+    .card{ background: var(--panel); border: 1px solid var(--border); }
+    .muted{ color: var(--text-muted); }
+    .btn-accent{ background: var(--accent); color: white; }
+    .btn-accent:hover{ filter: brightness(1.05); }
     input,select{
-      background:#101217; border:1px solid var(--border); color:#e8eaee;
-      border-radius:12px; padding:.65rem .8rem; width:100%;
+      background: var(--input-bg); border: 1px solid var(--border); color: var(--text-main);
+      border-radius: 12px; padding: .65rem .8rem; width: 100%;
     }
-    input:focus,select:focus{ outline:none; box-shadow:var(--ring); border-color:#3a414b }
-    .num{ font-variant-numeric:tabular-nums }
-    .kv{ display:flex; gap:.5rem; align-items:baseline }
-    .kv .k{ min-width:10.5rem; color:#aab2bd }
-    .kv .v{ font-weight:700 }
-    .text-ok{ color:var(--ok) }
-    .text-danger{ color:var(--danger) }
-    .tab{ padding: .5rem 1rem; border-bottom: 2px solid transparent; color: var(--muted); cursor: pointer; transition: color .2s, border-color .2s; }
+    input:focus,select:focus{ outline: none; box-shadow: var(--ring); border-color: var(--accent); }
+    .num{ font-variant-numeric: tabular-nums; }
+    .kv{ display: flex; gap: .5rem; align-items: baseline; }
+    .kv .k{ min-width: 10.5rem; color: var(--text-muted); }
+    .kv .v{ font-weight: 700; }
+    .text-ok{ color: var(--ok); }
+    .text-danger{ color: var(--danger); }
+    .tab{ padding: .5rem 1rem; border-bottom: 2px solid transparent; color: var(--text-muted); cursor: pointer; transition: color .2s, border-color .2s; }
     .tab.active{ color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
   </style>
 </head>
 <body class="pb-28">
-  <header class="max-w-5xl mx-auto px-4 py-7">
+  <header class="max-w-5xl mx-auto px-4 py-7 relative">
     <div class="rounded-3xl border border-[var(--accent)]/60 p-3 mx-auto w-fit">
       <div class="rounded-2xl px-5 py-3 bg-[var(--panel)] text-center">
         <h1 class="text-2xl font-semibold">Basedapp Simulator & Analyzer</h1>
       </div>
     </div>
+    <button id="theme-toggle" class="absolute top-8 right-8 p-2 rounded-full bg-[var(--panel)] border border-[var(--border)]">
+      <svg id="theme-icon-light" class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.706-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm-.707 7.072l.707-.707a1 1 0 10-1.414-1.414l-.707.707a1 1 0 101.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
+      <svg id="theme-icon-dark" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+    </button>
   </header>
 
   <main class="max-w-5xl mx-auto px-4 space-y-6">
@@ -141,7 +157,7 @@
             `<div class="kv"><span class="k">필요 거래 횟수</span><span class="v num">${tradeCountText}</span></div>`,
             `<hr class="my-2 border-[#2b2f36]" />`,
             `<h4 class="text-sm muted font-semibold pt-2">예상 수수료 상세</h4>`,
-            `<div class="kv"><span class="k">총 수수료</span><span class="v num">${d2(totalFeePaid)} $</span></div>`,
+            `<div class="kv"><span class="k">총 수수료 (하이퍼리퀴드+빌더)</span><span class="v num">${d2(totalFeePaid)} $</span></div>`,
             `<div class="kv ml-4"><span class="k text-xs">└ 하이퍼리퀴드 수수료</span><span class="v num text-xs">${d2(hyperliquidFeePaid)} $</span></div>`,
             `<div class="kv ml-4"><span class="k text-xs">└ 빌더 수수료</span><span class="v num text-xs">${d2(builderFeePaid)} $</span></div>`,
             `<div class="kv"><span class="k">리베이트 (빌더피의 60%)</span><span class="v num text-ok">${d2(rebateAmt)} $</span></div>`,
@@ -170,7 +186,7 @@
         const volPerXp = xpEarned > 0 ? (usedVol / xpEarned) : 0;
 
         const summaryCard = `
-            <div class="card rounded-xl p-3 bg-[#101217] border border-[var(--border)] space-y-2 mb-4">
+            <div class="card rounded-xl p-3 bg-[#101217] border-[var(--border)] space-y-2 mb-4">
                 <div class="kv text-lg"><span class="k">총 획득 XP</span><span class="v num text-ok">${d2(xpEarned)} XP</span></div>
                 <div class="kv"><span class="k">총 실질 비용</span><span class="v num text-danger">${d2(netFeePaid)} $</span></div>
                 <div class="kv"><span class="k">1 XP당 비용</span><span class="v num text-danger">${d_auto(costPerXp)} $</span></div>
@@ -181,7 +197,7 @@
             `<div class="kv"><span class="k">1 XP당 필요 거래량</span><span class="v num">${d_auto(volPerXp)} $</span></div>`,
             `<hr class="my-2 border-[#2b2f36]" />`,
             `<h4 class="text-sm muted font-semibold pt-2">수수료 상세</h4>`,
-            `<div class="kv"><span class="k">총 수수료</span><span class="v num">${d2(totalFeePaid)} $</span></div>`,
+            `<div class="kv"><span class="k">총 수수료 (하이퍼리퀴드+빌더)</span><span class="v num">${d2(totalFeePaid)} $</span></div>`,
             `<div class="kv ml-4"><span class="k text-xs">└ 하이퍼리퀴드 수수료</span><span class="v num text-xs">${d2(hyperliquidFeePaid)} $</span></div>`,
             `<div class="kv ml-4"><span class="k text-xs">└ 빌더 수수료</span><span class="v num text-xs">${d2(builderFeePaid)} $</span></div>`,
             `<div class="kv"><span class="k">리베이트 (빌더피의 60%)</span><span class="v num text-ok">${d2(rebateAmt)} $</span></div>`,
@@ -203,13 +219,45 @@
         $('simLeverageWrapper').style.display = $('simMode').value === 'perps' ? 'block' : 'none';
     }
 
+    const themeToggle = $('theme-toggle');
+    const lightIcon = $('theme-icon-light');
+    const darkIcon = $('theme-icon-dark');
+    const docEl = document.documentElement;
+
+    function applyTheme(theme) {
+        if (theme === 'light') {
+            docEl.setAttribute('data-theme', 'light');
+            lightIcon.classList.add('hidden');
+            darkIcon.classList.remove('hidden');
+        } else {
+            docEl.setAttribute('data-theme', 'dark');
+            lightIcon.classList.remove('hidden');
+            darkIcon.classList.add('hidden');
+        }
+    }
+
+    function toggleTheme() {
+        const currentTheme = docEl.getAttribute('data-theme');
+        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+        localStorage.setItem('theme', newTheme);
+        applyTheme(newTheme);
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
         toggleLeverage();
+        
         $('tabSimulator').addEventListener('click', () => switchTab('simulator'));
         $('tabAnalyzer').addEventListener('click', () => switchTab('analyzer'));
+        
         $('simulateBtn').addEventListener('click', runSimulation);
         $('analyzeBtn').addEventListener('click', runAnalyzer);
+        
         $('simMode').addEventListener('change', toggleLeverage);
+        themeToggle.addEventListener('click', toggleTheme);
+        
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        applyTheme(savedTheme);
+        
         $('out').innerHTML = `<div class="text-sm muted">원하는 작업을 선택하고 값을 입력해주세요.</div>`;
     });
   </script>
