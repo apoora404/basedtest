@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Basedapp Simulator & Checker</title>
+  <title>Basedapp Simulator & Analyzer</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     :root{
@@ -36,7 +36,7 @@
   <header class="max-w-5xl mx-auto px-4 py-7">
     <div class="rounded-3xl border border-[var(--accent)]/60 p-3 mx-auto w-fit">
       <div class="rounded-2xl px-5 py-3 bg-[var(--panel)] text-center">
-        <h1 class="text-2xl font-semibold">Basedapp Simulator & Checker</h1>
+        <h1 class="text-2xl font-semibold">Basedapp Simulator & Analyzer</h1>
       </div>
     </div>
   </header>
@@ -45,7 +45,7 @@
     <section class="card rounded-2xl p-4 space-y-4">
       <div class="flex border-b border-[var(--border)]">
         <button id="tabSimulator" class="tab active">목표 시뮬레이터</button>
-        <button id="tabChecker" class="tab">거래 검산기</button>
+        <button id="tabAnalyzer" class="tab">거래 분석</button>
       </div>
       
       <div id="simulatorInputs" class="space-y-4 pt-4">
@@ -66,8 +66,8 @@
         <button id="simulateBtn" class="w-full btn-accent p-2 rounded-xl font-semibold mt-2">시뮬레이션 실행</button>
       </div>
 
-      <div id="checkerInputs" class="hidden space-y-4 pt-4">
-        <p class="text-sm muted">실제 거래 후 누적된 거래량을 입력하여 효율을 역산합니다.</p>
+      <div id="analyzerInputs" class="hidden space-y-4 pt-4">
+        <p class="text-sm muted">실제 거래 후 누적된 거래량을 입력하여 효율을 분석합니다.</p>
         <div class="grid lg:grid-cols-2 gap-x-6 gap-y-4">
             <div class="space-y-4">
                 <div class="grid grid-cols-2 gap-3">
@@ -80,7 +80,7 @@
                 <label class="block"><span class="block text-xs muted">XP 부스트</span><select id="checkBoost"><option value="0">0%</option><option value="25">25%</option><option value="50">50%</option><option value="60" selected>60%</option></select></label>
             </div>
         </div>
-        <button id="checkBtn" class="w-full btn-accent p-2 rounded-xl font-semibold mt-2">검산하기</button>
+        <button id="analyzeBtn" class="w-full btn-accent p-2 rounded-xl font-semibold mt-2">분석하기</button>
       </div>
     </section>
 
@@ -92,8 +92,8 @@
   
   <script>
     const FEES = { 
-        perps: { maker_total: 0.0004 },
-        spot:  { maker_total_avg: 0.0009 }
+        perps: { total_maker: 0.0004 },
+        spot:  { total_maker_avg: 0.0009 }
     };
     const XP_PER_DOLLAR_BASE = {
         perps: 0.03375,
@@ -128,7 +128,7 @@
             tradeCountText = `${d2(neededTrades)} 회`;
         }
         
-        const totalFeePaid = neededVol * (mode === 'perps' ? FEES.perps.maker_total : FEES.spot.maker_total_avg);
+        const totalFeePaid = neededVol * (mode === 'perps' ? FEES.perps.total_maker : FEES.spot.total_maker_avg);
         const netFeePaid = totalFeePaid * (1 - 0.60);
 
         const rows = [
@@ -136,12 +136,13 @@
             `<hr class="my-2 border-[#2b2f36]" />`,
             `<div class="kv"><span class="k">필요 총 거래량</span><span class="v num">${d2(neededVol)} $</span></div>`,
             `<div class="kv"><span class="k">필요 거래 횟수</span><span class="v num">${tradeCountText}</span></div>`,
-            `<div class="kv"><span class="k">예상 실질 비용</span><span class="v num text-danger">${d2(netFeePaid)} $</span></div>`
+            `<div class="kv"><span class="k">예상 총수수료 (리베이트 전)</span><span class="v num">${d2(totalFeePaid)} $</span></div>`,
+            `<div class="kv"><span class="k">예상 실질 비용 (리베이트 후)</span><span class="v num text-danger">${d2(netFeePaid)} $</span></div>`
         ];
         $('out').innerHTML = `<div class="space-y-1">${rows.join("")}</div>`;
     }
 
-    function runChecker() {
+    function runAnalyzer() {
         const prevVol = Number($("prevVol").value || 0);
         const currVol = Number($("currVol").value || 0);
         const usedVol = Math.max(0, currVol - prevVol);
@@ -155,7 +156,7 @@
         
         const baseXP_rate = XP_PER_DOLLAR_BASE[mode];
         const xpEarned = usedVol * baseXP_rate * (1 + boost / 100);
-        const totalFeePaid = usedVol * (mode === 'perps' ? FEES.perps.maker_total : FEES.spot.maker_total_avg);
+        const totalFeePaid = usedVol * (mode === 'perps' ? FEES.perps.total_maker : FEES.spot.total_maker_avg);
         const rebateRate = 0.60;
         const rebateAmt = totalFeePaid * rebateRate;
         const netFeePaid = totalFeePaid - rebateAmt;
@@ -173,7 +174,7 @@
             `<div class="kv"><span class="k">사용 거래량</span><span class="v num">${d2(usedVol)} $</span></div>`,
             `<div class="kv"><span class="k">1 XP당 필요 거래량</span><span class="v num">${d_auto(volPerXp)} $</span></div>`,
             `<hr class="my-2 border-[#2b2f36]" />`,
-            `<div class="kv"><span class="k">총 수수료 (리베이트 전)</span><span class="v num">${d2(totalFeePaid)} $</span></div>`,
+            `<div class="kv"><span class="k">실제 총수수료 (리베이트 전)</span><span class="v num">${d2(totalFeePaid)} $</span></div>`,
             `<div class="kv"><span class="k">셀프레퍼럴 수익</span><span class="v num text-ok">${d2(rebateAmt)} $</span></div>`,
             `<div class="kv"><span class="k">실제 낸 수수료</span><span class="v num text-danger">${d2(netFeePaid)} $</span></div>`
         ];
@@ -183,10 +184,10 @@
     function switchTab(tabName) {
         const isSim = tabName === 'simulator';
         $('tabSimulator').classList.toggle('active', isSim);
-        $('tabChecker').classList.toggle('active', !isSim);
+        $('tabAnalyzer').classList.toggle('active', !isSim);
         $('simulatorInputs').classList.toggle('hidden', !isSim);
-        $('checkerInputs').classList.toggle('hidden', isSim);
-        $('out').innerHTML = ''; // 탭 전환 시 결과 초기화
+        $('analyzerInputs').classList.toggle('hidden', isSim);
+        $('out').innerHTML = '';
     }
     
     function toggleLeverage() {
@@ -197,10 +198,10 @@
         toggleLeverage();
         
         $('tabSimulator').addEventListener('click', () => switchTab('simulator'));
-        $('tabChecker').addEventListener('click', () => switchTab('checker'));
+        $('tabAnalyzer').addEventListener('click', () => switchTab('analyzer'));
         
         $('simulateBtn').addEventListener('click', runSimulation);
-        $('checkBtn').addEventListener('click', runChecker);
+        $('analyzeBtn').addEventListener('click', runAnalyzer);
         
         $('simMode').addEventListener('change', toggleLeverage);
         
