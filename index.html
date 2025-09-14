@@ -28,7 +28,8 @@
     .kv .v{ font-weight:700 }
     .text-ok{ color:var(--ok) }
     .text-danger{ color:var(--danger) }
-    .sim-label{ display:flex; justify-content:space-between; align-items:center; }
+    .tab{ padding: .5rem 1rem; border-bottom: 2px solid transparent; color: var(--muted); cursor: pointer; transition: color .2s, border-color .2s; }
+    .tab.active{ color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
   </style>
 </head>
 <body class="pb-28">
@@ -42,38 +43,44 @@
 
   <main class="max-w-5xl mx-auto px-4 space-y-6">
     <section class="card rounded-2xl p-4 space-y-4">
-      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end pb-4 border-b border-[var(--border)]">
-        <label class="block"><span class="block text-xs muted">거래 방식</span><select id="mode"><option value="perps">선물 (Perps)</option><option value="spot">현물 (Spot)</option></select></label>
-        <label class="block"><span class="block text-xs muted">XP 부스트</span><select id="boost"><option value="0">0%</option><option value="25">25%</option><option value="50">50%</option><option value="60" selected>60%</option></select></label>
-        <label class="block"><span class="block text-xs muted">시작 자금 ($)</span><input id="startCapital" type="number" step="0.01" placeholder="1000"></label>
-        <div id="leverageWrapper"><label class="block"><span class="block text-xs muted">레버리지</span><input id="leverage" type="number" value="10" step="1"></label></div>
+      <div class="flex border-b border-[var(--border)]">
+        <button id="tabSimulator" class="tab active">목표 시뮬레이터</button>
+        <button id="tabChecker" class="tab">거래 검산기</button>
+      </div>
+      
+      <div id="simulatorInputs" class="space-y-4 pt-4">
+        <p class="text-sm muted">목표 XP를 달성하기 위한 거래량과 횟수를 계산합니다.</p>
+        <div class="grid lg:grid-cols-2 gap-x-6 gap-y-4">
+            <div class="space-y-4">
+                <label class="block"><span class="block text-xs muted">목표 XP</span><input id="targetXp" type="number" step="100" placeholder="50000"></label>
+            </div>
+            <div class="space-y-4">
+                <label class="block"><span class="block text-xs muted">거래 방식</span><select id="simMode"><option value="perps">선물 (Perps)</option><option value="spot">현물 (Spot)</option></select></label>
+                <label class="block"><span class="block text-xs muted">XP 부스트</span><select id="simBoost"><option value="0">0%</option><option value="25">25%</option><option value="50">50%</option><option value="60" selected>60%</option></select></label>
+            </div>
+        </div>
+        <div class="grid lg:grid-cols-2 gap-x-6 gap-y-4 pt-4 border-t border-[var(--border)]">
+            <label class="block"><span class="block text-xs muted">시작 자금 ($)</span><input id="simStartCapital" type="number" step="0.01" placeholder="1000"></label>
+            <div id="simLeverageWrapper"><label class="block"><span class="block text-xs muted">레버리지</span><input id="simLeverage" type="number" value="10" step="1"></label></div>
+        </div>
+        <button id="simulateBtn" class="w-full btn-accent p-2 rounded-xl font-semibold mt-2">시뮬레이션 실행</button>
       </div>
 
-      <div class="grid lg:grid-cols-2 gap-x-6 gap-y-4 pt-4">
-        <div class="space-y-4">
-          <h3 class="font-semibold text-lg">검산기 (Checker)</h3>
-          <p class="text-xs muted">실제 거래 후 누적된 거래량을 입력하여 효율을 역산합니다.</p>
-          <div class="grid grid-cols-2 gap-3">
-            <label class="block"><span class="block text-xs muted">이전 거래량 (누적, $)</span><input id="prevVol" type="number" step="0.01"></label>
-            <label class="block"><span class="block text-xs muted">현재 거래량 (누적, $)</span><input id="currVol" type="number" step="0.01"></label>
-          </div>
-          <button id="checkBtn" class="w-full btn-accent p-2 rounded-xl font-semibold mt-2">검산하기</button>
+      <div id="checkerInputs" class="hidden space-y-4 pt-4">
+        <p class="text-sm muted">실제 거래 후 누적된 거래량을 입력하여 효율을 역산합니다.</p>
+        <div class="grid lg:grid-cols-2 gap-x-6 gap-y-4">
+            <div class="space-y-4">
+                <div class="grid grid-cols-2 gap-3">
+                    <label class="block"><span class="block text-xs muted">이전 거래량 (누적, $)</span><input id="prevVol" type="number" step="0.01"></label>
+                    <label class="block"><span class="block text-xs muted">현재 거래량 (누적, $)</span><input id="currVol" type="number" step="0.01"></label>
+                </div>
+            </div>
+            <div class="space-y-4">
+                <label class="block"><span class="block text-xs muted">거래 방식</span><select id="checkMode"><option value="perps">선물 (Perps)</option><option value="spot">현물 (Spot)</option></select></label>
+                <label class="block"><span class="block text-xs muted">XP 부스트</span><select id="checkBoost"><option value="0">0%</option><option value="25">25%</option><option value="50">50%</option><option value="60" selected>60%</option></select></label>
+            </div>
         </div>
-
-        <div class="space-y-4">
-          <h3 class="font-semibold text-lg">시뮬레이터 (Simulator)</h3>
-          <p class="text-xs muted">거래 횟수를 입력하여 결과를 예측합니다.</p>
-          <div class="grid grid-cols-1">
-             <label class="block">
-                <span class="sim-label text-xs muted mb-1">
-                    <span>거래 횟수</span>
-                    <span id="positionSizeDisplay" class="text-[var(--accent)]">1회 포지션: $0.00</span>
-                </span>
-                <input id="tradeCount" type="number" step="1" placeholder="100">
-            </label>
-          </div>
-          <button id="simulateBtn" class="w-full btn-accent p-2 rounded-xl font-semibold mt-2">시뮬레이션</button>
-        </div>
+        <button id="checkBtn" class="w-full btn-accent p-2 rounded-xl font-semibold mt-2">검산하기</button>
       </div>
     </section>
 
@@ -88,99 +95,116 @@
         perps: { maker_total: 0.0004 },
         spot:  { maker_total_avg: 0.0009 }
     };
-    // XP 획득량 25% 감소 적용 (-25%)
     const XP_PER_DOLLAR_BASE = {
-        perps: 0.0253125, // 0.03375 * 0.75
-        spot: 0.22785    // 0.3038 * 0.75
+        perps: 0.03375,
+        spot: 0.3038 
     };
 
     const $ = (id) => document.getElementById(id);
     const d2 = (n) => Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     const d_auto = (n) => Number(n || 0).toLocaleString(undefined, { maximumFractionDigits: 4 });
     
-    function calculateResults(params) {
-      const { usedVol } = params;
-      const mode = $('mode').value;
-      const boost = Number($('boost').value || 0);
-      
-      if (usedVol <= 0) { return `<div class="text-sm muted">거래량을 입력하거나 시뮬레이션 값을 넣어주세요.</div>`; }
-      
-      const baseXP_rate = XP_PER_DOLLAR_BASE[mode];
-      const xpEarned = usedVol * baseXP_rate * (1 + boost / 100);
-      
-      const totalFeePaid = usedVol * (mode === 'perps' ? FEES.perps.maker_total : FEES.spot.maker_total_avg);
-      const rebateRate = 0.60;
-      const rebateAmt = totalFeePaid * rebateRate;
-      const netFeePaid = totalFeePaid - rebateAmt;
-      const costPerXp = xpEarned > 0 ? (netFeePaid / xpEarned) : 0;
-      const volPerXp = xpEarned > 0 ? (usedVol / xpEarned) : 0;
-      
-      const startCapital = Number($('startCapital').value || 0);
-      const leverage = mode === 'perps' ? Number($('leverage').value || 1) : 1;
-      let tradeCountText = params.tradeCount ? `${d2(params.tradeCount)} 회` : "—";
-      if (tradeCountText === "—" && startCapital > 0) {
-          const tradeCount = usedVol / (startCapital * leverage);
-          tradeCountText = `${d2(tradeCount)} 회 (추정)`;
-      }
-      
-      const summaryCard = `
-        <div class="card rounded-xl p-3 bg-[#101217] border border-[var(--border)] space-y-2 mb-4">
-            <div class="kv text-lg"><span class="k">총 획득 XP</span><span class="v num text-ok">${d2(xpEarned)} XP</span></div>
-            <div class="kv"><span class="k">총 실질 비용</span><span class="v num text-danger">${d2(netFeePaid)} $</span></div>
-            <div class="kv"><span class="k">1 XP당 비용</span><span class="v num text-danger">${d_auto(costPerXp)} $</span></div>
-        </div>`;
-      const detailRows = [
-        `<h4 class="text-sm muted font-semibold pt-2">상세 내역</h4>`,
-        `<div class="kv"><span class="k">총 거래량</span><span class="v num">${d2(usedVol)} $</span></div>`,
-        `<div class="kv"><span class="k">거래 횟수</span><span class="v num">${tradeCountText}</span></div>`,
-        `<div class="kv"><span class="k">1 XP당 필요 거래량</span><span class="v num">${d_auto(volPerXp)} $</span></div>`,
-        `<hr class="my-2 border-[#2b2f36]" />`,
-        `<div class="kv"><span class="k">총 수수료 (리베이트 전)</span><span class="v num">${d2(totalFeePaid)} $</span></div>`,
-        `<div class="kv"><span class="k">셀프레퍼럴 수익</span><span class="v num text-ok">${d2(rebateAmt)} $</span></div>`,
-        `<div class="kv"><span class="k">실제 낸 수수료</span><span class="v num text-danger">${d2(netFeePaid)} $</span></div>`
-      ];
-      
-      return summaryCard + `<div class="space-y-1">${detailRows.join("")}</div>`;
-    }
-
     function runSimulation() {
-        const startCapital = Number($('startCapital').value || 0);
-        const leverage = $('mode').value === 'perps' ? Number($('leverage').value || 1) : 1;
-        const positionSize = startCapital * leverage;
-        const tradeCount = Number($('tradeCount').value || 0);
-        const params = { usedVol: positionSize * tradeCount, tradeCount: tradeCount };
-        $('out').innerHTML = calculateResults(params);
+        const targetXp = Number($('targetXp').value || 0);
+        const mode = $('simMode').value;
+        const boost = Number($('simBoost').value || 0);
+        const startCapital = Number($('simStartCapital').value || 0);
+        const leverage = mode === 'perps' ? Number($('simLeverage').value || 1) : 1;
+        
+        if (targetXp <= 0) {
+            $('out').innerHTML = `<div class="text-sm muted">목표 XP를 입력해주세요.</div>`;
+            return;
+        }
+
+        const baseXP_rate = XP_PER_DOLLAR_BASE[mode];
+        const boostedXP_rate = baseXP_rate * (1 + boost / 100);
+        
+        const neededVol = boostedXP_rate > 0 ? targetXp / boostedXP_rate : 0;
+        
+        let tradeCountText = "—";
+        if (startCapital > 0 && leverage > 0) {
+            const positionSize = startCapital * leverage;
+            const neededTrades = positionSize > 0 ? neededVol / positionSize : 0;
+            tradeCountText = `${d2(neededTrades)} 회`;
+        }
+        
+        const totalFeePaid = neededVol * (mode === 'perps' ? FEES.perps.maker_total : FEES.spot.maker_total_avg);
+        const netFeePaid = totalFeePaid * (1 - 0.60);
+
+        const rows = [
+            `<div class="kv text-lg"><span class="k">목표 XP</span><span class="v num text-ok">${d2(targetXp)} XP</span></div>`,
+            `<hr class="my-2 border-[#2b2f36]" />`,
+            `<div class="kv"><span class="k">필요 총 거래량</span><span class="v num">${d2(neededVol)} $</span></div>`,
+            `<div class="kv"><span class="k">필요 거래 횟수</span><span class="v num">${tradeCountText}</span></div>`,
+            `<div class="kv"><span class="k">예상 실질 비용</span><span class="v num text-danger">${d2(netFeePaid)} $</span></div>`
+        ];
+        $('out').innerHTML = `<div class="space-y-1">${rows.join("")}</div>`;
     }
 
     function runChecker() {
-        const prevVol = Number($("prevVol").value || 0), currVol = Number($("currVol").value || 0);
-        const params = { usedVol: Math.max(0, currVol - prevVol), tradeCount: null };
-        $('out').innerHTML = calculateResults(params);
+        const prevVol = Number($("prevVol").value || 0);
+        const currVol = Number($("currVol").value || 0);
+        const usedVol = Math.max(0, currVol - prevVol);
+        const mode = $('checkMode').value;
+        const boost = Number($('checkBoost').value || 0);
+
+        if (usedVol <= 0) {
+            $('out').innerHTML = `<div class="text-sm muted">이전/현재 거래량을 입력해주세요.</div>`;
+            return;
+        }
+        
+        const baseXP_rate = XP_PER_DOLLAR_BASE[mode];
+        const xpEarned = usedVol * baseXP_rate * (1 + boost / 100);
+        const totalFeePaid = usedVol * (mode === 'perps' ? FEES.perps.maker_total : FEES.spot.maker_total_avg);
+        const rebateRate = 0.60;
+        const rebateAmt = totalFeePaid * rebateRate;
+        const netFeePaid = totalFeePaid - rebateAmt;
+        const costPerXp = xpEarned > 0 ? (netFeePaid / xpEarned) : 0;
+        const volPerXp = xpEarned > 0 ? (usedVol / xpEarned) : 0;
+
+        const summaryCard = `
+            <div class="card rounded-xl p-3 bg-[#101217] border border-[var(--border)] space-y-2 mb-4">
+                <div class="kv text-lg"><span class="k">총 획득 XP</span><span class="v num text-ok">${d2(xpEarned)} XP</span></div>
+                <div class="kv"><span class="k">총 실질 비용</span><span class="v num text-danger">${d2(netFeePaid)} $</span></div>
+                <div class="kv"><span class="k">1 XP당 비용</span><span class="v num text-danger">${d_auto(costPerXp)} $</span></div>
+            </div>`;
+        const detailRows = [
+            `<h4 class="text-sm muted font-semibold pt-2">상세 내역</h4>`,
+            `<div class="kv"><span class="k">사용 거래량</span><span class="v num">${d2(usedVol)} $</span></div>`,
+            `<div class="kv"><span class="k">1 XP당 필요 거래량</span><span class="v num">${d_auto(volPerXp)} $</span></div>`,
+            `<hr class="my-2 border-[#2b2f36]" />`,
+            `<div class="kv"><span class="k">총 수수료 (리베이트 전)</span><span class="v num">${d2(totalFeePaid)} $</span></div>`,
+            `<div class="kv"><span class="k">셀프레퍼럴 수익</span><span class="v num text-ok">${d2(rebateAmt)} $</span></div>`,
+            `<div class="kv"><span class="k">실제 낸 수수료</span><span class="v num text-danger">${d2(netFeePaid)} $</span></div>`
+        ];
+        $('out').innerHTML = summaryCard + `<div class="space-y-1">${detailRows.join("")}</div>`;
+    }
+    
+    function switchTab(tabName) {
+        const isSim = tabName === 'simulator';
+        $('tabSimulator').classList.toggle('active', isSim);
+        $('tabChecker').classList.toggle('active', !isSim);
+        $('simulatorInputs').classList.toggle('hidden', !isSim);
+        $('checkerInputs').classList.toggle('hidden', isSim);
+        $('out').innerHTML = ''; // 탭 전환 시 결과 초기화
     }
     
     function toggleLeverage() {
-        $('leverageWrapper').style.display = $('mode').value === 'perps' ? 'block' : 'none';
-        updatePositionSizeDisplay();
-    }
-    
-    function updatePositionSizeDisplay() {
-        const startCapital = Number($('startCapital').value || 0);
-        const leverage = $('mode').value === 'perps' ? Number($('leverage').value || 1) : 1;
-        $('positionSizeDisplay').textContent = `1회 포지션: $${d2(startCapital * leverage)}`;
+        $('simLeverageWrapper').style.display = $('simMode').value === 'perps' ? 'block' : 'none';
     }
 
     document.addEventListener('DOMContentLoaded', () => {
         toggleLeverage();
         
+        $('tabSimulator').addEventListener('click', () => switchTab('simulator'));
+        $('tabChecker').addEventListener('click', () => switchTab('checker'));
+        
         $('simulateBtn').addEventListener('click', runSimulation);
         $('checkBtn').addEventListener('click', runChecker);
         
-        const globalInputs = ['mode', 'startCapital', 'leverage', 'boost'];
-        globalInputs.forEach(id => {
-            $(id).addEventListener('input', toggleLeverage);
-        });
+        $('simMode').addEventListener('change', toggleLeverage);
         
-        $('out').innerHTML = `<div class="text-sm muted">검산기 또는 시뮬레이터에 값을 입력하고 계산 버튼을 눌러주세요.</div>`;
+        $('out').innerHTML = `<div class="text-sm muted">원하는 작업을 선택하고 값을 입력해주세요.</div>`;
     });
   </script>
 </body>
