@@ -88,9 +88,10 @@
         perps: { maker_total: 0.0004 },
         spot:  { maker_total_avg: 0.0009 }
     };
+    // XP 획득량 25% 감소 적용 (-25%)
     const XP_PER_DOLLAR_BASE = {
-        perps: 0.03375,
-        spot: 0.3038 
+        perps: 0.0253125, // 0.03375 * 0.75
+        spot: 0.22785    // 0.3038 * 0.75
     };
 
     const $ = (id) => document.getElementById(id);
