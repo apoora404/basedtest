@@ -141,11 +141,11 @@
             `<div class="kv"><span class="k">필요 거래 횟수</span><span class="v num">${tradeCountText}</span></div>`,
             `<hr class="my-2 border-[#2b2f36]" />`,
             `<h4 class="text-sm muted font-semibold pt-2">예상 수수료 상세</h4>`,
-            `<div class="kv"><span class="k">총 수수료 (리베이트 전)</span><span class="v num">${d2(totalFeePaid)} $</span></div>`,
+            `<div class="kv"><span class="k">총 수수료</span><span class="v num">${d2(totalFeePaid)} $</span></div>`,
             `<div class="kv ml-4"><span class="k text-xs">└ 하이퍼리퀴드 수수료</span><span class="v num text-xs">${d2(hyperliquidFeePaid)} $</span></div>`,
-            `<div class="kv ml-4"><span class="k text-xs">└ 빌더 수수료 (XP 기반)</span><span class="v num text-xs">${d2(builderFeePaid)} $</span></div>`,
+            `<div class="kv ml-4"><span class="k text-xs">└ 빌더 수수료</span><span class="v num text-xs">${d2(builderFeePaid)} $</span></div>`,
             `<div class="kv"><span class="k">리베이트 (빌더피의 60%)</span><span class="v num text-ok">${d2(rebateAmt)} $</span></div>`,
-            `<div class="kv"><span class="k">최종 실질 비용</span><span class="v num text-danger">${d2(netFeePaid)} $</span></div>`
+            `<div class="kv"><span class="k">최종 지불 수수료</span><span class="v num text-danger">${d2(netFeePaid)} $</span></div>`
         ];
         $('out').innerHTML = `<div class="space-y-1">${rows.join("")}</div>`;
     }
@@ -181,11 +181,11 @@
             `<div class="kv"><span class="k">1 XP당 필요 거래량</span><span class="v num">${d_auto(volPerXp)} $</span></div>`,
             `<hr class="my-2 border-[#2b2f36]" />`,
             `<h4 class="text-sm muted font-semibold pt-2">수수료 상세</h4>`,
-            `<div class="kv"><span class="k">총 수수료 (리베이트 전)</span><span class="v num">${d2(totalFeePaid)} $</span></div>`,
+            `<div class="kv"><span class="k">총 수수료</span><span class="v num">${d2(totalFeePaid)} $</span></div>`,
             `<div class="kv ml-4"><span class="k text-xs">└ 하이퍼리퀴드 수수료</span><span class="v num text-xs">${d2(hyperliquidFeePaid)} $</span></div>`,
-            `<div class="kv ml-4"><span class="k text-xs">└ 빌더 수수료 (XP 기반)</span><span class="v num text-xs">${d2(builderFeePaid)} $</span></div>`,
+            `<div class="kv ml-4"><span class="k text-xs">└ 빌더 수수료</span><span class="v num text-xs">${d2(builderFeePaid)} $</span></div>`,
             `<div class="kv"><span class="k">리베이트 (빌더피의 60%)</span><span class="v num text-ok">${d2(rebateAmt)} $</span></div>`,
-            `<div class="kv"><span class="k">최종 실질 비용</span><span class="v num text-danger">${d2(netFeePaid)} $</span></div>`
+            `<div class="kv"><span class="k">최종 지불 수수료</span><span class="v num text-danger">${d2(netFeePaid)} $</span></div>`
         ];
         $('out').innerHTML = summaryCard + `<div class="space-y-1">${detailRows.join("")}</div>`;
     }
