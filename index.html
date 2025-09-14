@@ -66,13 +66,12 @@
         <div class="space-y-4">
           <h3 class="font-semibold text-lg">시뮬레이터 (Simulator)</h3>
           <p class="text-xs muted">포지션 크기와 횟수를 입력하여 결과를 예측합니다.</p>
-          <div class="grid grid-cols-2 gap-3">
+          <div class="grid grid-cols-1">
              <label class="block">
-                <span class="sim-label text-xs muted mb-1">1회 포지션 크기 ($)</span>
-                <input id="positionSize" type="number" step="0.01" placeholder="2000">
-            </label>
-            <label class="block">
-                <span class="sim-label text-xs muted mb-1">거래 횟수</span>
+                <span class="sim-label text-xs muted mb-1">
+                    <span>거래 횟수</span>
+                    <span id="positionSizeDisplay" class="text-[var(--accent)]">1회 포지션: $0.00</span>
+                </span>
                 <input id="tradeCount" type="number" step="1" placeholder="100">
             </label>
           </div>
@@ -101,9 +100,7 @@
       const mode = $('mode').value;
       const boost = Number($('boost').value || 0);
       
-      if (usedVol <= 0) {
-        return `<div class="text-sm muted">거래량을 입력하거나 시뮬레이션 값을 넣어주세요.</div>`;
-      }
+      if (usedVol <= 0) { return `<div class="text-sm muted">거래량을 입력하거나 시뮬레이션 값을 넣어주세요.</div>`; }
       
       const builderFeePaid = usedVol * BUILDER_FEE_RATES[mode];
       const finalMultiplier = XP_BASE_MULTIPLIER * (1 + boost / 100);
@@ -144,7 +141,9 @@
     }
 
     function runSimulation() {
-        const positionSize = Number($('positionSize').value || 0);
+        const startCapital = Number($('startCapital').value || 0);
+        const leverage = $('mode').value === 'perps' ? Number($('leverage').value || 1) : 1;
+        const positionSize = startCapital * leverage;
         const tradeCount = Number($('tradeCount').value || 0);
         const params = { 
             usedVol: positionSize * tradeCount,
@@ -164,6 +163,13 @@
     
     function toggleLeverage() {
         $('leverageWrapper').style.display = $('mode').value === 'perps' ? 'block' : 'none';
+        updatePositionSizeDisplay();
+    }
+    
+    function updatePositionSizeDisplay() {
+        const startCapital = Number($('startCapital').value || 0);
+        const leverage = $('mode').value === 'perps' ? Number($('leverage').value || 1) : 1;
+        $('positionSizeDisplay').textContent = `1회 포지션: $${d2(startCapital * leverage)}`;
     }
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -172,6 +178,9 @@
         $('simulateBtn').addEventListener('click', runSimulation);
         $('checkBtn').addEventListener('click', runChecker);
         $('mode').addEventListener('change', toggleLeverage);
+        ['startCapital', 'leverage'].forEach(id => {
+            $(id).addEventListener('input', updatePositionSizeDisplay);
+        });
         
         $('out').innerHTML = `<div class="text-sm muted">검산기 또는 시뮬레이터에 값을 입력하고 계산 버튼을 눌러주세요.</div>`;
     });
