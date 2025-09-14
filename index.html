@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Basedapp Simulator & Analyzer (Final Accuracy)</title>
+  <title>Basedapp Simulator & Analyzer</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     :root{
@@ -95,9 +95,13 @@
         perps: { total_maker: 0.0004 },
         spot:  { total_maker_avg: 0.0009 }
     };
+    const BUILDER_FEE_RATES = {
+        perps: 0.00025,
+        spot: 0.0005 
+    };
     const XP_PER_DOLLAR_BASE = {
-        perps: 0.02525, 
-        spot: 0.2272
+        perps: 0.03375,
+        spot: 0.3038 
     };
 
     const $ = (id) => document.getElementById(id);
@@ -125,15 +129,23 @@
         }
         
         const totalFeePaid = neededVol * (mode === 'perps' ? FEES.perps.total_maker : FEES.spot.total_maker_avg);
-        const netFeePaid = totalFeePaid * (1 - 0.60);
+        const builderFeePaid = neededVol * BUILDER_FEE_RATES[mode];
+        const hyperliquidFeePaid = totalFeePaid - builderFeePaid;
+        const rebateAmt = builderFeePaid * 0.60;
+        const netFeePaid = totalFeePaid - rebateAmt;
 
         const rows = [
             `<div class="kv text-lg"><span class="k">목표 XP</span><span class="v num text-ok">${d2(targetXp)} XP</span></div>`,
             `<hr class="my-2 border-[#2b2f36]" />`,
             `<div class="kv"><span class="k">필요 총 거래량</span><span class="v num">${d2(neededVol)} $</span></div>`,
             `<div class="kv"><span class="k">필요 거래 횟수</span><span class="v num">${tradeCountText}</span></div>`,
-            `<div class="kv"><span class="k">예상 총수수료 (리베이트 전)</span><span class="v num">${d2(totalFeePaid)} $</span></div>`,
-            `<div class="kv"><span class="k">예상 실질 비용 (리베이트 후)</span><span class="v num text-danger">${d2(netFeePaid)} $</span></div>`
+            `<hr class="my-2 border-[#2b2f36]" />`,
+            `<h4 class="text-sm muted font-semibold pt-2">예상 수수료 상세</h4>`,
+            `<div class="kv"><span class="k">총 수수료 (리베이트 전)</span><span class="v num">${d2(totalFeePaid)} $</span></div>`,
+            `<div class="kv ml-4"><span class="k text-xs">└ 하이퍼리퀴드 수수료</span><span class="v num text-xs">${d2(hyperliquidFeePaid)} $</span></div>`,
+            `<div class="kv ml-4"><span class="k text-xs">└ 빌더 수수료 (XP 기반)</span><span class="v num text-xs">${d2(builderFeePaid)} $</span></div>`,
+            `<div class="kv"><span class="k">리베이트 (빌더피의 60%)</span><span class="v num text-ok">${d2(rebateAmt)} $</span></div>`,
+            `<div class="kv"><span class="k">최종 실질 비용</span><span class="v num text-danger">${d2(netFeePaid)} $</span></div>`
         ];
         $('out').innerHTML = `<div class="space-y-1">${rows.join("")}</div>`;
     }
@@ -150,7 +162,9 @@
         const baseXP_rate = XP_PER_DOLLAR_BASE[mode];
         const xpEarned = usedVol * baseXP_rate * (1 + boost / 100);
         const totalFeePaid = usedVol * (mode === 'perps' ? FEES.perps.total_maker : FEES.spot.total_maker_avg);
-        const rebateAmt = totalFeePaid * 0.60;
+        const builderFeePaid = usedVol * BUILDER_FEE_RATES[mode];
+        const hyperliquidFeePaid = totalFeePaid - builderFeePaid;
+        const rebateAmt = builderFeePaid * 0.60;
         const netFeePaid = totalFeePaid - rebateAmt;
         const costPerXp = xpEarned > 0 ? (netFeePaid / xpEarned) : 0;
         const volPerXp = xpEarned > 0 ? (usedVol / xpEarned) : 0;
@@ -162,13 +176,16 @@
                 <div class="kv"><span class="k">1 XP당 비용</span><span class="v num text-danger">${d_auto(costPerXp)} $</span></div>
             </div>`;
         const detailRows = [
-            `<h4 class="text-sm muted font-semibold pt-2">상세 내역</h4>`,
+            `<h4 class="text-sm muted font-semibold pt-2">거래 분석 상세</h4>`,
             `<div class="kv"><span class="k">사용 거래량</span><span class="v num">${d2(usedVol)} $</span></div>`,
             `<div class="kv"><span class="k">1 XP당 필요 거래량</span><span class="v num">${d_auto(volPerXp)} $</span></div>`,
             `<hr class="my-2 border-[#2b2f36]" />`,
-            `<div class="kv"><span class="k">실제 총수수료 (리베이트 전)</span><span class="v num">${d2(totalFeePaid)} $</span></div>`,
-            `<div class="kv"><span class="k">셀프레퍼럴 수익</span><span class="v num text-ok">${d2(rebateAmt)} $</span></div>`,
-            `<div class="kv"><span class="k">실제 낸 수수료</span><span class="v num text-danger">${d2(netFeePaid)} $</span></div>`
+            `<h4 class="text-sm muted font-semibold pt-2">수수료 상세</h4>`,
+            `<div class="kv"><span class="k">총 수수료 (리베이트 전)</span><span class="v num">${d2(totalFeePaid)} $</span></div>`,
+            `<div class="kv ml-4"><span class="k text-xs">└ 하이퍼리퀴드 수수료</span><span class="v num text-xs">${d2(hyperliquidFeePaid)} $</span></div>`,
+            `<div class="kv ml-4"><span class="k text-xs">└ 빌더 수수료 (XP 기반)</span><span class="v num text-xs">${d2(builderFeePaid)} $</span></div>`,
+            `<div class="kv"><span class="k">리베이트 (빌더피의 60%)</span><span class="v num text-ok">${d2(rebateAmt)} $</span></div>`,
+            `<div class="kv"><span class="k">최종 실질 비용</span><span class="v num text-danger">${d2(netFeePaid)} $</span></div>`
         ];
         $('out').innerHTML = summaryCard + `<div class="space-y-1">${detailRows.join("")}</div>`;
     }
@@ -188,15 +205,11 @@
 
     document.addEventListener('DOMContentLoaded', () => {
         toggleLeverage();
-        
         $('tabSimulator').addEventListener('click', () => switchTab('simulator'));
         $('tabAnalyzer').addEventListener('click', () => switchTab('analyzer'));
-        
         $('simulateBtn').addEventListener('click', runSimulation);
         $('analyzeBtn').addEventListener('click', runAnalyzer);
-        
         $('simMode').addEventListener('change', toggleLeverage);
-        
         $('out').innerHTML = `<div class="text-sm muted">원하는 작업을 선택하고 값을 입력해주세요.</div>`;
     });
   </script>
