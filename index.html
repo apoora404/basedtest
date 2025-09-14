@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Basedapp Simulator & Analyzer</title>
+  <title>Basedapp Simulator & Analyzer (Final Accuracy)</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     :root{
@@ -96,8 +96,8 @@
         spot:  { total_maker_avg: 0.0009 }
     };
     const XP_PER_DOLLAR_BASE = {
-        perps: 0.03375,
-        spot: 0.3038 
+        perps: 0.02525, 
+        spot: 0.2272
     };
 
     const $ = (id) => document.getElementById(id);
@@ -111,14 +111,10 @@
         const startCapital = Number($('simStartCapital').value || 0);
         const leverage = mode === 'perps' ? Number($('simLeverage').value || 1) : 1;
         
-        if (targetXp <= 0) {
-            $('out').innerHTML = `<div class="text-sm muted">목표 XP를 입력해주세요.</div>`;
-            return;
-        }
+        if (targetXp <= 0) { $('out').innerHTML = `<div class="text-sm muted">목표 XP를 입력해주세요.</div>`; return; }
 
         const baseXP_rate = XP_PER_DOLLAR_BASE[mode];
         const boostedXP_rate = baseXP_rate * (1 + boost / 100);
-        
         const neededVol = boostedXP_rate > 0 ? targetXp / boostedXP_rate : 0;
         
         let tradeCountText = "—";
@@ -149,16 +145,12 @@
         const mode = $('checkMode').value;
         const boost = Number($('checkBoost').value || 0);
 
-        if (usedVol <= 0) {
-            $('out').innerHTML = `<div class="text-sm muted">이전/현재 거래량을 입력해주세요.</div>`;
-            return;
-        }
+        if (usedVol <= 0) { $('out').innerHTML = `<div class="text-sm muted">이전/현재 거래량을 입력해주세요.</div>`; return; }
         
         const baseXP_rate = XP_PER_DOLLAR_BASE[mode];
         const xpEarned = usedVol * baseXP_rate * (1 + boost / 100);
         const totalFeePaid = usedVol * (mode === 'perps' ? FEES.perps.total_maker : FEES.spot.total_maker_avg);
-        const rebateRate = 0.60;
-        const rebateAmt = totalFeePaid * rebateRate;
+        const rebateAmt = totalFeePaid * 0.60;
         const netFeePaid = totalFeePaid - rebateAmt;
         const costPerXp = xpEarned > 0 ? (netFeePaid / xpEarned) : 0;
         const volPerXp = xpEarned > 0 ? (usedVol / xpEarned) : 0;
