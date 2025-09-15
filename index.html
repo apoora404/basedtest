@@ -155,6 +155,7 @@
         const mode = $('simMode').value;
         const spotType = document.querySelector('input[name="simSpotType"]:checked').value;
         const baseXP_rate = getBaseXpRate(mode, spotType);
+
         const targetXp = Number($('targetXp').value || 0);
         const boost = Number($('simBoost').value || 0);
         const startCapital = Number($('simStartCapital').value || 0);
