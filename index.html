@@ -66,12 +66,14 @@
       <div id="simulatorInputs" class="space-y-4 pt-4">
         <p class="text-sm muted">목표 XP를 달성하기 위한 거래량과 횟수를 계산합니다.</p>
         <div class="grid sm:grid-cols-2 gap-x-6 gap-y-4">
-            <label class="block"><span class="block text-xs muted">거래 방식</span><select id="simMode"><option value="perps">선물 (Perps)</option><option value="spot">현물 (Spot)</option></select></label>
-            <div id="simPupSelector" class="hidden">
-                <span class="block text-xs muted">토큰 종류</span>
-                <div class="flex items-center gap-4 text-sm mt-2">
-                    <label class="flex items-center"><input type="radio" name="simSpotType" value="normal" checked> 일반</label>
-                    <label class="flex items-center"><input type="radio" name="simSpotType" value="pup"> $PUP (2.25배)</label>
+            <div>
+                <label class="block"><span class="block text-xs muted">거래 방식</span><select id="simMode"><option value="perps">선물 (Perps)</option><option value="spot">현물 (Spot)</option></select></label>
+                <div id="simPupSelector" class="hidden mt-2">
+                    <span class="block text-xs muted">토큰 종류</span>
+                    <div class="flex items-center gap-4 text-sm mt-2">
+                        <label class="flex items-center"><input type="radio" name="simSpotType" value="normal" checked> 일반</label>
+                        <label class="flex items-center"><input type="radio" name="simSpotType" value="pup"> $PUP (2.25배)</label>
+                    </div>
                 </div>
             </div>
             <div class="grid grid-cols-2 gap-3">
@@ -96,12 +98,14 @@
                 </div>
             </div>
             <div class="space-y-4">
-                <label class="block"><span class="block text-xs muted">거래 방식</span><select id="checkMode"><option value="perps">선물 (Perps)</option><option value="spot">현물 (Spot)</option></select></label>
-                <div id="checkPupSelector" class="hidden mt-2">
-                    <span class="block text-xs muted">토큰 종류</span>
-                    <div class="flex items-center gap-4 text-sm mt-2">
-                        <label class="flex items-center"><input type="radio" name="checkSpotType" value="normal" checked> 일반</label>
-                        <label class="flex items-center"><input type="radio" name="checkSpotType" value="pup"> $PUP (2.25배)</label>
+                <div>
+                    <label class="block"><span class="block text-xs muted">거래 방식</span><select id="checkMode"><option value="perps">선물 (Perps)</option><option value="spot">현물 (Spot)</option></select></label>
+                    <div id="checkPupSelector" class="hidden mt-2">
+                        <span class="block text-xs muted">토큰 종류</span>
+                        <div class="flex items-center gap-4 text-sm mt-2">
+                            <label class="flex items-center"><input type="radio" name="checkSpotType" value="normal" checked> 일반</label>
+                            <label class="flex items-center"><input type="radio" name="checkSpotType" value="pup"> $PUP (2.25배)</label>
+                        </div>
                     </div>
                 </div>
                 <label class="block"><span class="block text-xs muted">XP 부스트</span><select id="checkBoost"><option value="0">0%</option><option value="25">25%</option><option value="50">50%</option><option value="60" selected>60%</option></select></label>
@@ -117,6 +121,12 @@
     </section>
   </main>
   
+  <footer class="mt-6 py-4 border-t border-[var(--border)] text-center text-sm text-[var(--muted)]">
+    2025 Brought to you by
+    <a href="https://twitter.com/no_gongju" target="_blank" rel="noopener"
+       class="ml-1 text-[var(--accent)] hover:underline">@no_gongju</a>
+  </footer>
+
   <script>
     const FEES = { 
         perps: { total_maker: 0.0004 },
