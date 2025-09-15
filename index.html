@@ -94,16 +94,16 @@
                     <label class="block"><span class="block text-xs muted">이전 거래량 (누적, $)</span><input id="prevVol" type="number" step="0.01"></label>
                     <label class="block"><span class="block text-xs muted">현재 거래량 (누적, $)</span><input id="currVol" type="number" step="0.01"></label>
                 </div>
-                <div id="checkPupSelector" class="hidden">
+            </div>
+            <div class="space-y-4">
+                <label class="block"><span class="block text-xs muted">거래 방식</span><select id="checkMode"><option value="perps">선물 (Perps)</option><option value="spot">현물 (Spot)</option></select></label>
+                <div id="checkPupSelector" class="hidden mt-2">
                     <span class="block text-xs muted">토큰 종류</span>
                     <div class="flex items-center gap-4 text-sm mt-2">
                         <label class="flex items-center"><input type="radio" name="checkSpotType" value="normal" checked> 일반</label>
                         <label class="flex items-center"><input type="radio" name="checkSpotType" value="pup"> $PUP (2.25배)</label>
                     </div>
                 </div>
-            </div>
-            <div class="space-y-4">
-                <label class="block"><span class="block text-xs muted">거래 방식</span><select id="checkMode"><option value="perps">선물 (Perps)</option><option value="spot">현물 (Spot)</option></select></label>
                 <label class="block"><span class="block text-xs muted">XP 부스트</span><select id="checkBoost"><option value="0">0%</option><option value="25">25%</option><option value="50">50%</option><option value="60" selected>60%</option></select></label>
             </div>
         </div>
@@ -145,7 +145,6 @@
         const mode = $('simMode').value;
         const spotType = document.querySelector('input[name="simSpotType"]:checked').value;
         const baseXP_rate = getBaseXpRate(mode, spotType);
-
         const targetXp = Number($('targetXp').value || 0);
         const boost = Number($('simBoost').value || 0);
         const startCapital = Number($('simStartCapital').value || 0);
@@ -159,8 +158,7 @@
         let tradeCountText = "—";
         if (startCapital > 0 && leverage > 0) {
             const positionSize = startCapital * leverage;
-            const neededTrades = positionSize > 0 ? neededVol / positionSize : 0;
-            tradeCountText = `${d2(neededTrades)} 회`;
+            tradeCountText = positionSize > 0 ? `${d2(neededVol / positionSize)} 회` : "—";
         }
         
         const totalFeePaid = neededVol * (mode === 'perps' ? FEES.perps.total_maker : FEES.spot.total_maker_avg);
