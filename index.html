@@ -80,8 +80,8 @@
                         </div>
                     </div>
                 </div>
-                <div class="space-y-2">
-                    <span class="block text-xs muted">수수료 등급</span>
+                <div>
+                    <span class="block text-xs muted mb-2">수수료 등급</span>
                     <div class="flex items-center gap-4 text-sm">
                         <label class="flex items-center"><input type="radio" name="simFeeGrade" value="base_rate" checked> Base</label>
                         <label class="flex items-center"><input type="radio" name="simFeeGrade" value="diamond"> Diamond</label>
@@ -95,8 +95,8 @@
                     <label class="block"><span class="block text-xs muted">시작 자금 ($)</span><input id="simStartCapital" type="number" step="0.01" placeholder="1000"></label>
                     <div id="simLeverageWrapper"><label class="block"><span class="block text-xs muted">레버리지</span><input id="simLeverage" type="number" value="10" step="1"></label></div>
                 </div>
-                 <div class="space-y-2">
-                    <span class="block text-xs muted">주문 종류</span>
+                 <div>
+                    <span class="block text-xs muted mb-2">주문 종류</span>
                     <div class="flex items-center gap-4 text-sm">
                         <label class="flex items-center"><input type="radio" name="simOrderType" value="maker" checked> 지정가</label>
                         <label class="flex items-center"><input type="radio" name="simOrderType" value="taker"> 시장가</label>
@@ -270,8 +270,9 @@
             tradeCountText = positionSize > 0 ? `${d2(neededVol / positionSize)} 회` : "—";
         }
         
-        const feeRateKey = mode === 'spot' ? `${orderType}_avg` : orderType;
         const feeRateData = FEES[mode][feeGrade][tier];
+        // Spot은 maker/taker 키만 사용, avg 키는 없음.
+        const feeRateKey = mode === 'spot' ? orderType : orderType; 
         const feeRate = feeRateData ? feeRateData[feeRateKey] : 0;
         
         const totalFeePaid = neededVol * feeRate;
@@ -283,7 +284,7 @@
         const resultData = { 
             type: 'sim', mode, spotType, boost, targetXp, neededVol, tradeCountText, 
             totalFeePaid, hyperliquidFeePaid, builderFeePaid, rebateAmt, netFeePaid, 
-            orderType, feeGrade, tier: feeRateData.name 
+            orderType, feeGrade, tierName: feeRateData.name 
         };
         generateResultHTML(resultData);
     }
@@ -302,8 +303,7 @@
         if (usedVol <= 0) { $('out').innerHTML = `<div class="text-sm muted">이전/현재 거래량을 입력해주세요.</div>`; return; }
         
         const xpEarned = usedVol * baseXP_rate * (1 + boost / 100);
-        // Spot은 maker/taker 키가 다르지 않고, taker/maker 만 있음. avg 키를 쓰지 않도록 수정.
-        const feeRateKey = orderType; 
+        const feeRateKey = mode === 'spot' ? orderType : orderType;
         const feeRateData = FEES[mode][feeGrade][tier];
         const feeRate = feeRateData ? feeRateData[feeRateKey] : 0;
 
@@ -316,7 +316,7 @@
         const resultData = { 
             type: 'analyzer', mode, spotType, boost, usedVol, xpEarned, 
             totalFeePaid, hyperliquidFeePaid, builderFeePaid, rebateAmt, netFeePaid, 
-            orderType, feeGrade, tier: feeRateData.name 
+            orderType, feeGrade, tierName: feeRateData.name 
         };
         generateResultHTML(resultData);
     }
@@ -371,7 +371,7 @@
         const modeText = params.mode === 'perps' ? '선물' : `현물(${params.spotType==='pup' ? 'PUP' : '일반'})`;
         const gradeText = params.feeGrade.replace('_rate', '').charAt(0).toUpperCase() + params.feeGrade.replace('_rate', '').slice(1);
         const orderText = params.orderType === 'maker' ? '지정가' : '시장가';
-        $('resultBadge').textContent = `${modeText} | ${gradeText} ${params.tier} | ${params.boost}% 부스트 | ${orderText}`;
+        $('resultBadge').textContent = `${modeText} | ${gradeText} ${params.tierName} | ${params.boost}% 부스트 | ${orderText}`;
     }
     
     function switchTab(tabName) {
@@ -459,8 +459,12 @@
             modeSelect.addEventListener('change', () => {
                 const grade = document.querySelector(`input[name="${prefix}FeeGrade"]:checked`).value;
                 populateTiers(modeSelect.value, grade, `${prefix}Tier`);
-                if (prefix === 'sim') toggleLeverage();
-                togglePupSelector();
+                if (prefix === 'sim') {
+                    toggleLeverage(); 
+                    togglePupSelector(); 
+                } else { 
+                    togglePupSelector(); 
+                }
             });
             gradeRadios.forEach(radio => {
                 radio.addEventListener('change', () => {
