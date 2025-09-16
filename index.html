@@ -66,9 +66,9 @@
       <div id="simulatorInputs" class="space-y-4 pt-4">
         <p class="text-sm muted">목표 XP를 달성하기 위한 거래량과 횟수를 계산합니다.</p>
         <div class="grid sm:grid-cols-2 gap-x-6 gap-y-4">
-            <div class="grid grid-cols-2 gap-3">
+            <div>
                 <label class="block"><span class="block text-xs muted">거래 방식</span><select id="simMode"><option value="perps">선물 (Perps)</option><option value="spot">현물 (Spot)</option></select></label>
-                <div id="simPupSelector" class="hidden">
+                <div id="simPupSelector" class="hidden mt-2">
                     <span class="block text-xs muted">토큰 종류</span>
                     <div class="flex items-center gap-4 text-sm mt-2">
                         <label class="flex items-center"><input type="radio" name="simSpotType" value="normal" checked> 일반</label>
@@ -106,8 +106,8 @@
                     <label class="block"><span class="block text-xs muted">이전 거래량 (누적, $)</span><input id="prevVol" type="number" step="0.01"></label>
                     <label class="block"><span class="block text-xs muted">현재 거래량 (누적, $)</span><input id="currVol" type="number" step="0.01"></label>
                 </div>
-                <div>
-                    <span class="block text-xs muted mb-2">주문 종류</span>
+                <div class="space-y-2">
+                    <span class="block text-xs muted">주문 종류</span>
                     <div class="flex items-center gap-4 text-sm">
                         <label class="flex items-center"><input type="radio" name="checkOrderType" value="maker" checked> 지정가</label>
                         <label class="flex items-center"><input type="radio" name="checkOrderType" value="taker"> 시장가</label>
@@ -148,14 +148,10 @@
   <script>
     const FEES = { 
         perps: { 
-            tiers: [
-                { name: "Tier 0", maker: 0.0004, taker: 0.0007 }
-            ]
+            tiers: [ { name: "Tier 0", maker: 0.0004, taker: 0.0007 } ]
         },
         spot:  { 
-            tiers: [
-                { name: "Tier 0", maker_avg: 0.0009, taker_avg: 0.00135 }
-            ]
+            tiers: [ { name: "Tier 0", maker_avg: 0.0009, taker_avg: 0.00135 } ]
         }
     };
     const BUILDER_FEE_RATES = {
@@ -232,14 +228,93 @@
     }
 
     function runAnalyzer() {
-        // ... (runAnalyzer logic)
+        const mode = $('checkMode').value;
+        const spotType = document.querySelector('input[name="checkSpotType"]:checked').value;
+        const orderType = document.querySelector('input[name="checkOrderType"]:checked').value;
+        const baseXP_rate = getBaseXpRate(mode, spotType);
+        
+        const usedVol = Math.max(0, Number($("currVol").value || 0) - Number($("prevVol").value || 0));
+        const boost = Number($('checkBoost').value || 0);
+
+        if (usedVol <= 0) { $('out').innerHTML = `<div class="text-sm muted">이전/현재 거래량을 입력해주세요.</div>`; return; }
+        
+        const xpEarned = usedVol * baseXP_rate * (1 + boost / 100);
+        const feeRate = mode === 'perps' ? FEES.perps.tiers[0][orderType] : FEES.spot.tiers[0][`${orderType}_avg`];
+        const totalFeePaid = usedVol * feeRate;
+        const builderFeePaid = usedVol * BUILDER_FEE_RATES[mode];
+        const hyperliquidFeePaid = totalFeePaid - builderFeePaid;
+        const rebateAmt = builderFeePaid * 0.60;
+        const netFeePaid = totalFeePaid - rebateAmt;
+        const costPerXp = xpEarned > 0 ? (netFeePaid / xpEarned) : 0;
+        const volPerXp = xpEarned > 0 ? (usedVol / xpEarned) : 0;
+
+        const summaryCard = `
+            <div class="card rounded-xl p-3 bg-[#101217] border-[var(--border)] space-y-2 mb-4">
+                <div class="kv text-lg"><span class="k">총 획득 XP</span><span class="v num text-ok">${d2(xpEarned)} XP</span></div>
+                <div class="kv"><span class="k">총 실질 비용</span><span class="v num text-danger">${d2(netFeePaid)} $</span></div>
+                <div class="kv"><span class="k">1 XP당 비용</span><span class="v num text-danger">${d_auto(costPerXp)} $</span></div>
+            </div>`;
+        const detailRows = [
+            `<h4 class="text-sm muted font-semibold pt-2">거래 분석 상세</h4>`,
+            `<div class="kv"><span class="k">사용 거래량</span><span class="v num">${d2(usedVol)} $</span></div>`,
+            `<div class="kv"><span class="k">1 XP당 필요 거래량</span><span class="v num">${d_auto(volPerXp)} $</span></div>`,
+            `<hr class="my-2 border-[var(--border)]" />`,
+            `<h4 class="text-sm muted font-semibold pt-2">수수료 상세</h4>`,
+            `<div class="kv"><span class="k">총 수수료</span><span class="v num">${d2(totalFeePaid)} $</span></div>`,
+            `<div class="kv ml-4"><span class="k text-xs">└ 하이퍼리퀴드</span><span class="v num text-xs">${d2(hyperliquidFeePaid)} $</span></div>`,
+            `<div class="kv ml-4"><span class="k text-xs">└ 빌더</span><span class="v num text-xs">${d2(builderFeePaid)} $</span></div>`,
+            `<div class="kv"><span class="k">리베이트</span><span class="v num text-ok">${d2(rebateAmt)} $</span></div>`,
+            `<div class="kv"><span class="k">최종 지불 수수료</span><span class="v num text-danger">${d2(netFeePaid)} $</span></div>`
+        ];
+        $('out').innerHTML = summaryCard + `<div class="space-y-1">${detailRows.join("")}</div>`;
     }
     
-    // ... (UI control functions)
+    function switchTab(tabName) {
+        const isSim = tabName === 'simulator';
+        $('tabSimulator').classList.toggle('active', isSim);
+        $('tabAnalyzer').classList.toggle('active', !isSim);
+        $('simulatorInputs').classList.toggle('hidden', !isSim);
+        $('analyzerInputs').classList.toggle('hidden', isSim);
+        $('out').innerHTML = '';
+    }
+    
+    function toggleLeverage() { $('simLeverageWrapper').style.display = $('simMode').value === 'perps' ? 'block' : 'none'; }
+    function togglePupSelector() {
+        $('simPupSelector').style.display = $('simMode').value === 'spot' ? 'block' : 'none';
+        $('checkPupSelector').style.display = $('checkMode').value === 'spot' ? 'block' : 'none';
+    }
+
+    const themeToggle = $('theme-toggle');
+    const lightIcon = $('theme-icon-light');
+    const darkIcon = $('theme-icon-dark');
+    const docEl = document.documentElement;
+
+    function applyTheme(theme) {
+        docEl.setAttribute('data-theme', theme);
+        lightIcon.classList.toggle('hidden', theme === 'light');
+        darkIcon.classList.toggle('hidden', theme === 'dark');
+    }
+
+    function toggleTheme() {
+        const newTheme = docEl.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+        localStorage.setItem('theme', newTheme);
+        applyTheme(newTheme);
+    }
 
     document.addEventListener('DOMContentLoaded', () => {
         populateTiers();
-        // ... (event listeners)
+        toggleLeverage();
+        togglePupSelector();
+        $('tabSimulator').addEventListener('click', () => switchTab('simulator'));
+        $('tabAnalyzer').addEventListener('click', () => switchTab('analyzer'));
+        $('simulateBtn').addEventListener('click', runSimulation);
+        $('analyzeBtn').addEventListener('click', runAnalyzer);
+        $('simMode').addEventListener('change', () => { toggleLeverage(); togglePupSelector(); });
+        $('checkMode').addEventListener('change', togglePupSelector);
+        themeToggle.addEventListener('click', toggleTheme);
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        applyTheme(savedTheme);
+        $('out').innerHTML = `<div class="text-sm muted">원하는 작업을 선택하고 값을 입력해주세요.</div>`;
     });
   </script>
 </body>
