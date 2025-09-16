@@ -66,9 +66,9 @@
       <div id="simulatorInputs" class="space-y-4 pt-4">
         <p class="text-sm muted">목표 XP를 달성하기 위한 거래량과 횟수를 계산합니다.</p>
         <div class="grid sm:grid-cols-2 gap-x-6 gap-y-4">
-            <div>
+            <div class="grid grid-cols-2 gap-3">
                 <label class="block"><span class="block text-xs muted">거래 방식</span><select id="simMode"><option value="perps">선물 (Perps)</option><option value="spot">현물 (Spot)</option></select></label>
-                <div id="simPupSelector" class="hidden mt-2">
+                <div id="simPupSelector" class="hidden">
                     <span class="block text-xs muted">토큰 종류</span>
                     <div class="flex items-center gap-4 text-sm mt-2">
                         <label class="flex items-center"><input type="radio" name="simSpotType" value="normal" checked> 일반</label>
@@ -79,16 +79,6 @@
             <div class="grid grid-cols-2 gap-3">
                 <label class="block"><span class="block text-xs muted">시작 자금 ($)</span><input id="simStartCapital" type="number" step="0.01" placeholder="1000"></label>
                 <div id="simLeverageWrapper"><label class="block"><span class="block text-xs muted">레버리지</span><input id="simLeverage" type="number" value="10" step="1"></label></div>
-            </div>
-            <div class="grid grid-cols-2 gap-3">
-                <div>
-                    <span class="block text-xs muted mb-2">주문 종류</span>
-                    <div class="flex items-center gap-4 text-sm">
-                        <label class="flex items-center"><input type="radio" name="simOrderType" value="maker" checked> 지정가</label>
-                        <label class="flex items-center"><input type="radio" name="simOrderType" value="taker"> 시장가</label>
-                    </div>
-                </div>
-                <label class="block"><span class="block text-xs muted">수수료 Tier</span><select id="simTier"></select></label>
             </div>
             <div class="grid grid-cols-2 gap-3">
                 <label class="block"><span class="block text-xs muted">목표 XP</span><input id="targetXp" type="number" step="100" placeholder="50000"></label>
@@ -106,13 +96,6 @@
                     <label class="block"><span class="block text-xs muted">이전 거래량 (누적, $)</span><input id="prevVol" type="number" step="0.01"></label>
                     <label class="block"><span class="block text-xs muted">현재 거래량 (누적, $)</span><input id="currVol" type="number" step="0.01"></label>
                 </div>
-                <div class="space-y-2">
-                    <span class="block text-xs muted">주문 종류</span>
-                    <div class="flex items-center gap-4 text-sm">
-                        <label class="flex items-center"><input type="radio" name="checkOrderType" value="maker" checked> 지정가</label>
-                        <label class="flex items-center"><input type="radio" name="checkOrderType" value="taker"> 시장가</label>
-                    </div>
-                </div>
             </div>
             <div class="space-y-4">
                 <div>
@@ -126,7 +109,6 @@
                     </div>
                 </div>
                 <label class="block"><span class="block text-xs muted">XP 부스트</span><select id="checkBoost"><option value="0">0%</option><option value="25">25%</option><option value="50">50%</option><option value="60" selected>60%</option></select></label>
-                 <label class="block"><span class="block text-xs muted">수수료 Tier</span><select id="checkTier"></select></label>
             </div>
         </div>
         <button id="analyzeBtn" class="w-full btn-accent p-2 rounded-xl font-semibold mt-2">분석하기</button>
@@ -147,12 +129,8 @@
 
   <script>
     const FEES = { 
-        perps: { 
-            tiers: [ { name: "Tier 0", maker: 0.0004, taker: 0.0007 } ]
-        },
-        spot:  { 
-            tiers: [ { name: "Tier 0", maker_avg: 0.0009, taker_avg: 0.00135 } ]
-        }
+        perps: { total_maker: 0.0004 },
+        spot:  { total_maker_avg: 0.0009 }
     };
     const BUILDER_FEE_RATES = {
         perps: 0.00025,
@@ -172,20 +150,10 @@
         if (mode === 'perps') return XP_PER_DOLLAR_BASE.perps;
         return spotType === 'pup' ? XP_PER_DOLLAR_BASE.spot_pup : XP_PER_DOLLAR_BASE.spot_normal;
     }
-    
-    function populateTiers() {
-        const simTier = $('simTier'), checkTier = $('checkTier');
-        simTier.innerHTML = ''; checkTier.innerHTML = '';
-        FEES.perps.tiers.forEach((t, i) => {
-            simTier.innerHTML += `<option value="${i}">${t.name}</option>`;
-            checkTier.innerHTML += `<option value="${i}">${t.name}</option>`;
-        });
-    }
 
     function runSimulation() {
         const mode = $('simMode').value;
         const spotType = document.querySelector('input[name="simSpotType"]:checked').value;
-        const orderType = document.querySelector('input[name="simOrderType"]:checked').value;
         const baseXP_rate = getBaseXpRate(mode, spotType);
 
         const targetXp = Number($('targetXp').value || 0);
@@ -204,8 +172,7 @@
             tradeCountText = positionSize > 0 ? `${d2(neededVol / positionSize)} 회` : "—";
         }
         
-        const feeRate = mode === 'perps' ? FEES.perps.tiers[0][orderType] : FEES.spot.tiers[0][`${orderType}_avg`];
-        const totalFeePaid = neededVol * feeRate;
+        const totalFeePaid = neededVol * (mode === 'perps' ? FEES.perps.total_maker : FEES.spot.total_maker_avg);
         const builderFeePaid = neededVol * BUILDER_FEE_RATES[mode];
         const hyperliquidFeePaid = totalFeePaid - builderFeePaid;
         const rebateAmt = builderFeePaid * 0.60;
@@ -217,11 +184,11 @@
             `<div class="kv"><span class="k">필요 총 거래량</span><span class="v num">${d2(neededVol)} $</span></div>`,
             `<div class="kv"><span class="k">필요 거래 횟수</span><span class="v num">${tradeCountText}</span></div>`,
             `<hr class="my-2 border-[var(--border)]" />`,
-            `<h4 class="text-sm muted font-semibold pt-2">예상 수수료 상세 (${orderType === 'maker' ? '지정가' : '시장가'})</h4>`,
-            `<div class="kv"><span class="k">총 수수료</span><span class="v num">${d2(totalFeePaid)} $</span></div>`,
-            `<div class="kv ml-4"><span class="k text-xs">└ 하이퍼리퀴드</span><span class="v num text-xs">${d2(hyperliquidFeePaid)} $</span></div>`,
-            `<div class="kv ml-4"><span class="k text-xs">└ 빌더</span><span class="v num text-xs">${d2(builderFeePaid)} $</span></div>`,
-            `<div class="kv"><span class="k">리베이트</span><span class="v num text-ok">${d2(rebateAmt)} $</span></div>`,
+            `<h4 class="text-sm muted font-semibold pt-2">예상 수수료 상세</h4>`,
+            `<div class="kv"><span class="k">총 수수료 (하이퍼리퀴드+빌더)</span><span class="v num">${d2(totalFeePaid)} $</span></div>`,
+            `<div class="kv ml-4"><span class="k text-xs">└ 하이퍼리퀴드 수수료</span><span class="v num text-xs">${d2(hyperliquidFeePaid)} $</span></div>`,
+            `<div class="kv ml-4"><span class="k text-xs">└ 빌더 수수료</span><span class="v num text-xs">${d2(builderFeePaid)} $</span></div>`,
+            `<div class="kv"><span class="k">리베이트 (빌더피의 60%)</span><span class="v num text-ok">${d2(rebateAmt)} $</span></div>`,
             `<div class="kv"><span class="k">최종 지불 수수료</span><span class="v num text-danger">${d2(netFeePaid)} $</span></div>`
         ];
         $('out').innerHTML = `<div class="space-y-1">${rows.join("")}</div>`;
@@ -230,7 +197,6 @@
     function runAnalyzer() {
         const mode = $('checkMode').value;
         const spotType = document.querySelector('input[name="checkSpotType"]:checked').value;
-        const orderType = document.querySelector('input[name="checkOrderType"]:checked').value;
         const baseXP_rate = getBaseXpRate(mode, spotType);
         
         const usedVol = Math.max(0, Number($("currVol").value || 0) - Number($("prevVol").value || 0));
@@ -239,8 +205,7 @@
         if (usedVol <= 0) { $('out').innerHTML = `<div class="text-sm muted">이전/현재 거래량을 입력해주세요.</div>`; return; }
         
         const xpEarned = usedVol * baseXP_rate * (1 + boost / 100);
-        const feeRate = mode === 'perps' ? FEES.perps.tiers[0][orderType] : FEES.spot.tiers[0][`${orderType}_avg`];
-        const totalFeePaid = usedVol * feeRate;
+        const totalFeePaid = usedVol * (mode === 'perps' ? FEES.perps.total_maker : FEES.spot.total_maker_avg);
         const builderFeePaid = usedVol * BUILDER_FEE_RATES[mode];
         const hyperliquidFeePaid = totalFeePaid - builderFeePaid;
         const rebateAmt = builderFeePaid * 0.60;
@@ -260,10 +225,10 @@
             `<div class="kv"><span class="k">1 XP당 필요 거래량</span><span class="v num">${d_auto(volPerXp)} $</span></div>`,
             `<hr class="my-2 border-[var(--border)]" />`,
             `<h4 class="text-sm muted font-semibold pt-2">수수료 상세</h4>`,
-            `<div class="kv"><span class="k">총 수수료</span><span class="v num">${d2(totalFeePaid)} $</span></div>`,
-            `<div class="kv ml-4"><span class="k text-xs">└ 하이퍼리퀴드</span><span class="v num text-xs">${d2(hyperliquidFeePaid)} $</span></div>`,
-            `<div class="kv ml-4"><span class="k text-xs">└ 빌더</span><span class="v num text-xs">${d2(builderFeePaid)} $</span></div>`,
-            `<div class="kv"><span class="k">리베이트</span><span class="v num text-ok">${d2(rebateAmt)} $</span></div>`,
+            `<div class="kv"><span class="k">총 수수료 (하이퍼리퀴드+빌더)</span><span class="v num">${d2(totalFeePaid)} $</span></div>`,
+            `<div class="kv ml-4"><span class="k text-xs">└ 하이퍼리퀴드 수수료</span><span class="v num text-xs">${d2(hyperliquidFeePaid)} $</span></div>`,
+            `<div class="kv ml-4"><span class="k text-xs">└ 빌더 수수료</span><span class="v num text-xs">${d2(builderFeePaid)} $</span></div>`,
+            `<div class="kv"><span class="k">리베이트 (빌더피의 60%)</span><span class="v num text-ok">${d2(rebateAmt)} $</span></div>`,
             `<div class="kv"><span class="k">최종 지불 수수료</span><span class="v num text-danger">${d2(netFeePaid)} $</span></div>`
         ];
         $('out').innerHTML = summaryCard + `<div class="space-y-1">${detailRows.join("")}</div>`;
@@ -302,7 +267,6 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-        populateTiers();
         toggleLeverage();
         togglePupSelector();
         $('tabSimulator').addEventListener('click', () => switchTab('simulator'));
