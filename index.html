@@ -80,15 +80,15 @@
                         </div>
                     </div>
                 </div>
-                <div class="grid grid-cols-2 gap-3">
+                 <div class="grid grid-cols-2 gap-3">
                     <label class="block"><span class="block text-xs muted">시작 자금 ($)</span><input id="simStartCapital" type="number" step="0.01" placeholder="1000"></label>
                     <div id="simLeverageWrapper"><label class="block"><span class="block text-xs muted">레버리지</span><input id="simLeverage" type="number" value="10" step="1"></label></div>
                 </div>
-                <label class="block"><span class="block text-xs muted">목표 XP</span><input id="targetXp" type="number" step="100" placeholder="50000"></label>
+                 <label class="block"><span class="block text-xs muted">목표 XP</span><input id="targetXp" type="number" step="100" placeholder="50000"></label>
             </div>
             <div class="space-y-4">
-                 <div class="space-y-2">
-                    <span class="block text-xs muted">주문 종류</span>
+                 <div>
+                    <span class="block text-xs muted mb-2">주문 종류</span>
                     <div class="flex items-center gap-4 text-sm">
                         <label class="flex items-center"><input type="radio" name="simOrderType" value="maker" checked> 지정가</label>
                         <label class="flex items-center"><input type="radio" name="simOrderType" value="taker"> 시장가</label>
@@ -119,13 +119,6 @@
                     <label class="block"><span class="block text-xs muted">이전 거래량 (누적, $)</span><input id="prevVol" type="number" step="0.01"></label>
                     <label class="block"><span class="block text-xs muted">현재 거래량 (누적, $)</span><input id="currVol" type="number" step="0.01"></label>
                 </div>
-                 <div class="space-y-2">
-                    <span class="block text-xs muted">주문 종류</span>
-                    <div class="flex items-center gap-4 text-sm">
-                        <label class="flex items-center"><input type="radio" name="checkOrderType" value="maker" checked> 지정가</label>
-                        <label class="flex items-center"><input type="radio" name="checkOrderType" value="taker"> 시장가</label>
-                    </div>
-                </div>
             </div>
             <div class="space-y-4">
                 <div>
@@ -137,17 +130,6 @@
                             <label class="flex items-center"><input type="radio" name="checkSpotType" value="pup"> $PUP (2.25배)</label>
                         </div>
                     </div>
-                </div>
-                <div id="checkGradeWrapper" class="space-y-2">
-                    <span class="block text-xs muted">수수료 등급</span>
-                    <div class="flex items-center gap-4 text-sm">
-                        <label class="flex items-center"><input type="radio" name="checkFeeGrade" value="base_rate" checked> Base</label>
-                        <label class="flex items-center"><input type="radio" name="checkFeeGrade" value="diamond"> Diamond</label>
-                        <label class="flex items-center"><input type="radio" name="checkFeeGrade" value="platinum"> Platinum</label>
-                    </div>
-                </div>
-                 <div id="checkTierWrapper">
-                    <label class="block"><span class="block text-xs muted">수수료 Tier</span><select id="checkTier"></select></label>
                 </div>
                  <label class="block"><span class="block text-xs muted">XP 부스트</span><select id="checkBoost"><option value="0">0%</option><option value="25">25%</option><option value="50">50%</option><option value="60" selected>60%</option></select></label>
             </div>
@@ -185,18 +167,6 @@
                 { name: "Tier 2", taker: 0.00035, maker: 0.00008 }, { name: "Tier 3", taker: 0.00030, maker: 0.00004 },
                 { name: "Tier 4", taker: 0.00028, maker: 0.00000 }, { name: "Tier 5", taker: 0.00026, maker: 0.00000 },
                 { name: "Tier 6", taker: 0.00024, maker: 0.00000 }
-            ],
-            diamond: [
-                { name: "Tier 0", taker: 0.000270, maker: 0.000090 }, { name: "Tier 1", taker: 0.000240, maker: 0.000072 },
-                { name: "Tier 2", taker: 0.000210, maker: 0.000048 }, { name: "Tier 3", taker: 0.000180, maker: 0.000024 },
-                { name: "Tier 4", taker: 0.000168, maker: 0.000000 }, { name: "Tier 5", taker: 0.000156, maker: 0.000000 },
-                { name: "Tier 6", taker: 0.000144, maker: 0.000000 }
-            ],
-            platinum: [
-                { name: "Tier 0", taker: 0.000315, maker: 0.000105 }, { name: "Tier 1", taker: 0.000280, maker: 0.000084 },
-                { name: "Tier 2", taker: 0.000245, maker: 0.000056 }, { name: "Tier 3", taker: 0.000210, maker: 0.000028 },
-                { name: "Tier 4", taker: 0.000196, maker: 0.000000 }, { name: "Tier 5", taker: 0.000182, maker: 0.000000 },
-                { name: "Tier 6", taker: 0.000168, maker: 0.000000 }
             ]
         },
         spot: {
@@ -220,10 +190,6 @@
             ]
         }
     };
-    const BUILDER_FEE_RATES = {
-        perps: 0.00025,
-        spot: 0.0005 
-    };
     const XP_PER_DOLLAR_BASE = {
         perps: 0.02525,
         spot_normal: 0.101,
@@ -243,8 +209,9 @@
     function populateTiers(mode, feeGrade, tierElementId) {
         const tierSelect = $(tierElementId);
         tierSelect.innerHTML = '';
-        if (FEES[mode] && FEES[mode][feeGrade]) {
-            FEES[mode][feeGrade].forEach((t, i) => {
+        const feeData = (mode === 'spot') ? FEES.spot[feeGrade] : FEES.perps[feeGrade];
+        if (feeData) {
+            feeData.forEach((t, i) => {
                 tierSelect.innerHTML += `<option value="${i}">${t.name}</option>`;
             });
         }
@@ -298,10 +265,9 @@
     function generateResultHTML(p) {
         const volume = p.type === 'sim' ? p.neededVol : p.usedVol;
         const xp = p.type === 'sim' ? p.targetXp : p.usedVol * getBaseXpRate(p.mode, p.spotType) * (1 + p.boost / 100);
-
+        
         const feeRateData = FEES[p.mode][p.feeGrade][p.tier];
-        const feeRateKey = p.orderType;
-        const feeRate = feeRateData ? feeRateData[feeRateKey] : 0;
+        const feeRate = feeRateData ? feeRateData[p.orderType] : 0;
         
         const totalFeePaid = volume * feeRate;
         const builderFeePaid = volume * BUILDER_FEE_RATES[p.mode];
@@ -377,13 +343,10 @@
         const isSpot = mode === 'spot';
         
         $(`${prefix}PupSelector`).style.display = isSpot ? 'block' : 'none';
-        $(`${prefix}GradeWrapper`).style.display = !isSpot ? 'none' : 'block'; // 선물일때 숨김
-        $(`${prefix}TierWrapper`).style.display = isSpot ? 'block' : 'none'; // 현물일때 표시
-
-        const grade = document.querySelector(`input[name="${prefix}FeeGrade"]:checked`).value;
-        populateTiers(mode, grade, `${prefix}Tier`);
+        $(`${prefix}GradeWrapper`).style.display = isSpot ? 'block' : 'none';
+        $(`${prefix}TierWrapper`).style.display = !isSpot ? 'block' : 'none';
     }
-    
+
     function copyResultToClipboard(){
         if (!lastResultForExport) return;
         const p = lastResultForExport;
@@ -449,10 +412,8 @@
         
         const setupEventListeners = (prefix) => {
             const modeSelect = $(`${prefix}Mode`);
-            const gradeRadios = document.querySelectorAll(`input[name="${prefix}FeeGrade"]`);
-
             modeSelect.addEventListener('change', () => toggleDynamicOptions(prefix));
-            gradeRadios.forEach(radio => {
+            document.querySelectorAll(`input[name="${prefix}FeeGrade"]`).forEach(radio => {
                 radio.addEventListener('change', () => toggleDynamicOptions(prefix));
             });
         };
