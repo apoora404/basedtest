@@ -87,6 +87,13 @@
                 <label class="block"><span class="block text-xs muted">목표 XP</span><input id="targetXp" type="number" step="100" placeholder="50000"></label>
             </div>
             <div class="space-y-4">
+                 <div class="space-y-2">
+                    <span class="block text-xs muted">주문 종류</span>
+                    <div class="flex items-center gap-4 text-sm">
+                        <label class="flex items-center"><input type="radio" name="simOrderType" value="maker" checked> 지정가</label>
+                        <label class="flex items-center"><input type="radio" name="simOrderType" value="taker"> 시장가</label>
+                    </div>
+                </div>
                 <div class="space-y-2">
                     <span class="block text-xs muted">수수료 등급</span>
                     <div class="flex items-center gap-4 text-sm">
@@ -95,8 +102,8 @@
                         <label class="flex items-center"><input type="radio" name="simFeeGrade" value="platinum"> Platinum</label>
                     </div>
                 </div>
-                <label class="block"><span class="block text-xs muted">수수료 Tier</span><select id="simTier"></select></label>
-                <label class="block"><span class="block text-xs muted">XP 부스트</span><select id="simBoost"><option value="0">0%</option><option value="25">25%</option><option value="50">50%</option><option value="60" selected>60%</option></select></label>
+                 <label class="block"><span class="block text-xs muted">수수료 Tier</span><select id="simTier"></select></label>
+                 <label class="block"><span class="block text-xs muted">XP 부스트</span><select id="simBoost"><option value="0">0%</option><option value="25">25%</option><option value="50">50%</option><option value="60" selected>60%</option></select></label>
             </div>
         </div>
         <button id="simulateBtn" class="w-full btn-accent p-2 rounded-xl font-semibold mt-4">시뮬레이션 실행</button>
@@ -263,12 +270,11 @@
             tradeCountText = positionSize > 0 ? `${d2(neededVol / positionSize)} 회` : "—";
         }
         
-        const feeRateKey = mode === 'spot' ? `${orderType}_avg` : orderType;
         const feeRateData = FEES[mode][feeGrade][tier];
-        const feeRate = feeRateData ? feeRateData[feeRateKey] : 0;
+        const feeRate = feeRateData ? feeRateData[orderType] : 0;
         
         const totalFeePaid = neededVol * feeRate;
-        const builderFeePaid = neededVol * BUILDER_FEE_RATES[mode];
+        const builderFeePaid = neededVol * (mode === 'spot' ? 0 : BUILDER_FEE_RATES.perps); // Spot builder fee is already in the total fee.
         const hyperliquidFeePaid = totalFeePaid - builderFeePaid;
         const rebateAmt = builderFeePaid * 0.60;
         const netFeePaid = totalFeePaid - rebateAmt;
@@ -295,12 +301,11 @@
         if (usedVol <= 0) { $('out').innerHTML = `<div class="text-sm muted">이전/현재 거래량을 입력해주세요.</div>`; return; }
         
         const xpEarned = usedVol * baseXP_rate * (1 + boost / 100);
-        const feeRateKey = mode === 'spot' ? `${orderType}_avg` : orderType;
         const feeRateData = FEES[mode][feeGrade][tier];
-        const feeRate = feeRateData ? feeRateData[feeRateKey] : 0;
+        const feeRate = feeRateData ? feeRateData[orderType] : 0;
 
         const totalFeePaid = usedVol * feeRate;
-        const builderFeePaid = usedVol * BUILDER_FEE_RATES[mode];
+        const builderFeePaid = usedVol * (mode === 'spot' ? 0 : BUILDER_FEE_RATES.perps);
         const hyperliquidFeePaid = totalFeePaid - builderFeePaid;
         const rebateAmt = builderFeePaid * 0.60;
         const netFeePaid = totalFeePaid - rebateAmt;
@@ -377,11 +382,14 @@
     }
     
     function toggleLeverage() { $('simLeverageWrapper').style.display = $('simMode').value === 'perps' ? 'block' : 'none'; }
-    function togglePupSelector() {
-        $('simPupSelector').style.display = $('simMode').value === 'spot' ? 'block' : 'none';
-        $('checkPupSelector').style.display = $('checkMode').value === 'spot' ? 'block' : 'none';
+    function toggleDynamicOptions(prefix) {
+        const mode = $(`${prefix}Mode`).value;
+        const isSpot = mode === 'spot';
+        $(`${prefix}PupSelector`).style.display = isSpot ? 'block' : 'none';
+        $(`${prefix}GradeWrapper`).style.display = isSpot ? 'block' : 'none';
+        $(`${prefix}TierWrapper`).style.display = isSpot ? 'none' : 'block';
     }
-    
+
     function copyResultToClipboard(){
         if (!lastResultForExport) return;
         const p = lastResultForExport;
@@ -436,7 +444,8 @@
         populateTiers('perps', 'base_rate', 'simTier');
         populateTiers('perps', 'base_rate', 'checkTier');
         toggleLeverage();
-        togglePupSelector();
+        toggleDynamicOptions('sim');
+        toggleDynamicOptions('check');
         
         $('tabSimulator').addEventListener('click', () => switchTab('simulator'));
         $('tabAnalyzer').addEventListener('click', () => switchTab('analyzer'));
@@ -445,21 +454,9 @@
         $('analyzeBtn').addEventListener('click', runAnalyzer);
         
         const setupEventListeners = (prefix) => {
-            const modeSelect = $(`${prefix}Mode`);
-            const gradeRadios = document.querySelectorAll(`input[name="${prefix}FeeGrade"]`);
-
-            modeSelect.addEventListener('change', () => {
-                const grade = document.querySelector(`input[name="${prefix}FeeGrade"]:checked`).value;
-                populateTiers(modeSelect.value, grade, `${prefix}Tier`);
-                if (prefix === 'sim') {
-                    toggleLeverage(); 
-                }
-                togglePupSelector();
-            });
-            gradeRadios.forEach(radio => {
-                radio.addEventListener('change', () => {
-                    populateTiers(modeSelect.value, radio.value, `${prefix}Tier`);
-                });
+            $(`${prefix}Mode`).addEventListener('change', () => toggleDynamicOptions(prefix));
+            document.querySelectorAll(`input[name="${prefix}FeeGrade"]`).forEach(radio => {
+                radio.addEventListener('change', () => toggleDynamicOptions(prefix));
             });
         };
         
