@@ -5,11 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Basedapp Simulator & Analyzer</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <style>
     :root {
       color-scheme: dark;
-      --bg: #0e0f12; --panel: #16181d; --panel-solid:#121419; --border: #242833;
+      --bg: #0e0f12; --panel: #16181d; --border: #242833;
       --text-main: #e8eaee; --text-muted: #98a2af;
       --accent: #ff6a3d; --ok: #2ad7a3; --danger: #ff6b6b;
       --ring: 0 0 0 3px rgba(255,106,61,.35);
@@ -28,7 +27,6 @@
     .muted{ color: var(--text-muted); }
     .btn-accent{ background: var(--accent); color: white; }
     .btn-accent:hover{ filter: brightness(1.05); }
-    .btn-ghost{ background:var(--input-bg); border:1px solid var(--border); color:var(--text-main); }
     input,select{
       background: var(--input-bg); border: 1px solid var(--border); color: var(--text-main);
       border-radius: 12px; padding: .65rem .8rem; width: 100%;
@@ -39,7 +37,6 @@
     .kv{ display: flex; gap: .5rem; align-items: baseline; }
     .kv .k{ min-width: 10.5rem; color: var(--text-muted); }
     .kv .v{ font-weight: 700; }
-    .badge{ background:var(--input-bg); border:1px solid var(--border); padding:.18rem .55rem; border-radius:999px; }
     .text-ok{ color: var(--ok); }
     .text-danger{ color: var(--danger); }
     .tab{ padding: .5rem 1rem; border-bottom: 2px solid transparent; color: var(--text-muted); cursor: pointer; transition: color .2s, border-color .2s; }
@@ -80,21 +77,14 @@
                         </div>
                     </div>
                 </div>
-                 <div class="grid grid-cols-2 gap-3">
+                <div class="grid grid-cols-2 gap-3">
                     <label class="block"><span class="block text-xs muted">시작 자금 ($)</span><input id="simStartCapital" type="number" step="0.01" placeholder="1000"></label>
                     <div id="simLeverageWrapper"><label class="block"><span class="block text-xs muted">레버리지</span><input id="simLeverage" type="number" value="10" step="1"></label></div>
                 </div>
-                 <label class="block"><span class="block text-xs muted">목표 XP</span><input id="targetXp" type="number" step="100" placeholder="50000"></label>
+                <label class="block"><span class="block text-xs muted">목표 XP</span><input id="targetXp" type="number" step="100" placeholder="50000"></label>
             </div>
             <div class="space-y-4">
-                 <div>
-                    <span class="block text-xs muted mb-2">주문 종류</span>
-                    <div class="flex items-center gap-4 text-sm">
-                        <label class="flex items-center"><input type="radio" name="simOrderType" value="maker" checked> 지정가</label>
-                        <label class="flex items-center"><input type="radio" name="simOrderType" value="taker"> 시장가</label>
-                    </div>
-                </div>
-                 <div id="simGradeWrapper" class="space-y-2">
+                <div class="space-y-2">
                     <span class="block text-xs muted">수수료 등급</span>
                     <div class="flex items-center gap-4 text-sm">
                         <label class="flex items-center"><input type="radio" name="simFeeGrade" value="base_rate" checked> Base</label>
@@ -102,10 +92,8 @@
                         <label class="flex items-center"><input type="radio" name="simFeeGrade" value="platinum"> Platinum</label>
                     </div>
                 </div>
-                 <div id="simTierWrapper">
-                    <label class="block"><span class="block text-xs muted">수수료 Tier</span><select id="simTier"></select></label>
-                </div>
-                 <label class="block"><span class="block text-xs muted">XP 부스트</span><select id="simBoost"><option value="0">0%</option><option value="25">25%</option><option value="50">50%</option><option value="60" selected>60%</option></select></label>
+                <label class="block"><span class="block text-xs muted">수수료 Tier</span><select id="simTier"></select></label>
+                <label class="block"><span class="block text-xs muted">XP 부스트</span><select id="simBoost"><option value="0">0%</option><option value="25">25%</option><option value="50">50%</option><option value="60" selected>60%</option></select></label>
             </div>
         </div>
         <button id="simulateBtn" class="w-full btn-accent p-2 rounded-xl font-semibold mt-4">시뮬레이션 실행</button>
@@ -119,13 +107,6 @@
                     <label class="block"><span class="block text-xs muted">이전 거래량 (누적, $)</span><input id="prevVol" type="number" step="0.01"></label>
                     <label class="block"><span class="block text-xs muted">현재 거래량 (누적, $)</span><input id="currVol" type="number" step="0.01"></label>
                 </div>
-                 <div class="space-y-2">
-                    <span class="block text-xs muted">주문 종류</span>
-                    <div class="flex items-center gap-4 text-sm">
-                        <label class="flex items-center"><input type="radio" name="checkOrderType" value="maker" checked> 지정가</label>
-                        <label class="flex items-center"><input type="radio" name="checkOrderType" value="taker"> 시장가</label>
-                    </div>
-                </div>
             </div>
             <div class="space-y-4">
                 <div>
@@ -138,18 +119,7 @@
                         </div>
                     </div>
                 </div>
-                <div id="checkGradeWrapper" class="space-y-2">
-                    <span class="block text-xs muted">수수료 등급</span>
-                    <div class="flex items-center gap-4 text-sm">
-                        <label class="flex items-center"><input type="radio" name="checkFeeGrade" value="base_rate" checked> Base</label>
-                        <label class="flex items-center"><input type="radio" name="checkFeeGrade" value="diamond"> Diamond</label>
-                        <label class="flex items-center"><input type="radio" name="checkFeeGrade" value="platinum"> Platinum</label>
-                    </div>
-                </div>
-                 <div id="checkTierWrapper">
-                    <label class="block"><span class="block text-xs muted">수수료 Tier</span><select id="checkTier"></select></label>
-                </div>
-                 <label class="block"><span class="block text-xs muted">XP 부스트</span><select id="checkBoost"><option value="0">0%</option><option value="25">25%</option><option value="50">50%</option><option value="60" selected>60%</option></select></label>
+                <label class="block"><span class="block text-xs muted">XP 부스트</span><select id="checkBoost"><option value="0">0%</option><option value="25">25%</option><option value="50">50%</option><option value="60" selected>60%</option></select></label>
             </div>
         </div>
         <button id="analyzeBtn" class="w-full btn-accent p-2 rounded-xl font-semibold mt-2">분석하기</button>
@@ -181,10 +151,10 @@
     const FEES = {
         perps: {
             base_rate: [
-                { name: "Tier 0 (<5M)", taker: 0.00045, maker: 0.00015 }, { name: "Tier 1 (>5M)", taker: 0.00040, maker: 0.00012 },
-                { name: "Tier 2 (>25M)", taker: 0.00035, maker: 0.00008 }, { name: "Tier 3 (>100M)", taker: 0.00030, maker: 0.00004 },
-                { name: "Tier 4 (>500M)", taker: 0.00028, maker: 0.00000 }, { name: "Tier 5 (>2B)", taker: 0.00026, maker: 0.00000 },
-                { name: "Tier 6 (>7B)", taker: 0.00024, maker: 0.00000 }
+                { name: "Tier 0", taker: 0.00045, maker: 0.00015 }, { name: "Tier 1", taker: 0.00040, maker: 0.00012 },
+                { name: "Tier 2", taker: 0.00035, maker: 0.00008 }, { name: "Tier 3", taker: 0.00030, maker: 0.00004 },
+                { name: "Tier 4", taker: 0.00028, maker: 0.00000 }, { name: "Tier 5", taker: 0.00026, maker: 0.00000 },
+                { name: "Tier 6", taker: 0.00024, maker: 0.00000 }
             ],
             diamond: [
                 { name: "Tier 0", taker: 0.000270, maker: 0.000090 }, { name: "Tier 1", taker: 0.000240, maker: 0.000072 },
@@ -300,7 +270,8 @@
         const xp = p.type === 'sim' ? p.targetXp : p.usedVol * getBaseXpRate(p.mode, p.spotType) * (1 + p.boost / 100);
 
         const feeRateData = FEES[p.mode][p.feeGrade][p.tier];
-        const feeRate = feeRateData ? feeRateData[p.orderType] : 0;
+        const feeRateKey = p.mode === 'spot' ? p.orderType : p.orderType; // Spot uses maker/taker directly now.
+        const feeRate = feeRateData ? feeRateData[feeRateKey] : 0;
         
         const totalFeePaid = volume * feeRate;
         const builderFeePaid = volume * (p.mode === 'spot' ? 0 : BUILDER_FEE_RATES.perps);
@@ -378,13 +349,6 @@
         $(`${prefix}PupSelector`).style.display = isSpot ? 'block' : 'none';
         $(`${prefix}GradeWrapper`).style.display = isSpot ? 'block' : 'none';
         $(`${prefix}TierWrapper`).style.display = isSpot ? 'none' : 'block';
-
-        if (isSpot) {
-            const grade = document.querySelector(`input[name="${prefix}FeeGrade"]:checked`).value;
-            populateTiers('spot', grade, `${prefix}Tier`);
-        } else {
-            populateTiers('perps', 'base_rate', `${prefix}Tier`);
-        }
     }
     
     function copyResultToClipboard(){
@@ -452,9 +416,18 @@
         
         const setupEventListeners = (prefix) => {
             const modeSelect = $(`${prefix}Mode`);
-            modeSelect.addEventListener('change', () => toggleDynamicOptions(prefix));
-            document.querySelectorAll(`input[name="${prefix}FeeGrade"]`).forEach(radio => {
-                radio.addEventListener('change', () => toggleDynamicOptions(prefix));
+            const gradeRadios = document.querySelectorAll(`input[name="${prefix}FeeGrade"]`);
+
+            modeSelect.addEventListener('change', () => {
+                toggleDynamicOptions(prefix);
+                if (prefix === 'sim') {
+                    toggleLeverage(); 
+                }
+            });
+            gradeRadios.forEach(radio => {
+                radio.addEventListener('change', () => {
+                    toggleDynamicOptions(prefix);
+                });
             });
         };
         
