@@ -94,15 +94,7 @@
                         <label class="flex items-center"><input type="radio" name="simOrderType" value="maker" checked> 지정가</label>
                         <label class="flex items-center"><input type="radio" name="simOrderType" value="taker"> 시장가</label>
                     </div>
-                </div>
-                <div id="simGradeWrapper" class="space-y-2 hidden">
-                    <span class="block text-xs muted">수수료 등급 (현물 전용)</span>
-                    <div class="flex items-center gap-4 text-sm">
-                        <label class="flex items-center"><input type="radio" name="simFeeGrade" value="base_rate" checked> Base</label>
-                        <label class="flex items-center"><input type="radio" name="simFeeGrade" value="diamond"> Diamond</label>
-                        <label class="flex items-center"><input type="radio" name="simFeeGrade" value="platinum"> Platinum</label>
-                    </div>
-                </div>
+                </div>                </div>
                  <div id="simTierWrapper">
                     <label class="block"><span class="block text-xs muted">수수료 Tier</span><select id="simTier"></select></label>
                 </div>
@@ -139,15 +131,7 @@
                         <label class="flex items-center"><input type="radio" name="checkOrderType" value="maker" checked> 지정가</label>
                         <label class="flex items-center"><input type="radio" name="checkOrderType" value="taker"> 시장가</label>
                     </div>
-                </div>
-                <div id="checkGradeWrapper" class="space-y-2 hidden">
-                    <span class="block text-xs muted">수수료 등급 (현물 전용)</span>
-                    <div class="flex items-center gap-4 text-sm">
-                        <label class="flex items-center"><input type="radio" name="checkFeeGrade" value="base_rate" checked> Base</label>
-                        <label class="flex items-center"><input type="radio" name="checkFeeGrade" value="diamond"> Diamond</label>
-                        <label class="flex items-center"><input type="radio" name="checkFeeGrade" value="platinum"> Platinum</label>
-                    </div>
-                </div>
+                </div>                </div>
                 <div id="checkTierWrapper">
                     <label class="block"><span class="block text-xs muted">수수료 Tier</span><select id="checkTier"></select></label>
                 </div>
@@ -243,6 +227,18 @@
         const tierSelect = $(`${prefix}Tier`);
         if (!tierSelect) return;
         tierSelect.innerHTML = '';
+        const feeData = (mode === 'spot') ? FEES.spot.base_rate : FEES.perps.base_rate;
+        if (feeData) {
+            feeData.forEach((t, i) => {
+                const opt = document.createElement('option');
+                opt.value = String(i); opt.textContent = t.name;
+                tierSelect.appendChild(opt);
+            });
+        }
+    }Mode`).value;
+        const tierSelect = $(`${prefix}Tier`);
+        if (!tierSelect) return;
+        tierSelect.innerHTML = '';
         const grade = (mode === 'spot') ? currentFeeGrade(prefix) : 'base_rate';
         const feeData = (mode === 'spot') ? FEES.spot[grade] : FEES.perps[grade];
         if (feeData) {
@@ -262,7 +258,7 @@
         const startCapital = Number($('simStartCapital').value || 0);
         const leverage = mode === 'perps' ? Math.max(1, Number($('simLeverage').value || 1)) : 1;
         const orderType = document.querySelector('input[name="simOrderType"]:checked').value;
-        const feeGrade = (mode === 'spot') ? currentFeeGrade('sim') : 'base_rate';
+        const feeGrade = 'base_rate';
         const tier = Number($('simTier').value || 0);
         const targetXp = Number($('targetXp').value || 0);
 
@@ -321,7 +317,7 @@
         const spotType = (mode === 'spot') ? document.querySelector('input[name="checkSpotType"]:checked').value : 'normal';
         const boost = Number($('checkBoost').value || 0);
         const orderType = document.querySelector('input[name="checkOrderType"]:checked').value;
-        const feeGrade = (mode === 'spot') ? currentFeeGrade('check') : 'base_rate';
+        const feeGrade = 'base_rate';
         const tier = Number($('checkTier').value || 0);
 
         const usedVol = Math.max(0, Number($("currVol").value || 0) - Number($("prevVol").value || 0));
@@ -377,6 +373,10 @@
     // ===== Common UI =====
     function updateResultHeader(params){
         const modeText = params.mode === 'perps' ? '선물' : `현물(${params.spotType==='pup' ? 'PUP' : '일반'})`;
+        const orderText = params.orderType === 'maker' ? '지정가' : '시장가';
+        const leftLabel = params.mode === 'spot' ? `${modeText} | ${params.tierName}` : `${modeText} | Base ${params.tierName}`;
+        $('resultBadge').textContent = `${leftLabel} | ${params.boost}% 부스트 | ${orderText}`;
+    })`;
         const gradeText = params.mode === 'spot' ? (params.feeGrade.replace('_rate','').replace(/^./, s=>s.toUpperCase()) || 'Base') : 'Base';
         const orderText = params.orderType === 'maker' ? '지정가' : '시장가';
         $('resultBadge').textContent = `${modeText} | ${gradeText} ${params.tierName} | ${params.boost}% 부스트 | ${orderText}`;
@@ -396,6 +396,11 @@
 
     function toggleDynamicOptions(prefix) {
         const mode = $(`${prefix}Mode`).value;
+        const isSpot = mode === 'spot';
+        $(`${prefix}PupSelector`).style.display = isSpot ? 'block' : 'none';
+        $(`${prefix}TierWrapper`).style.display = 'block';
+        populateTiers(prefix);
+    }Mode`).value;
         const isSpot = mode === 'spot';
         $(`${prefix}PupSelector`).style.display = isSpot ? 'block' : 'none';
         $(`${prefix}GradeWrapper`).classList.toggle('hidden', !isSpot);
@@ -474,8 +479,7 @@
             if (prefix === 'sim') toggleLeverage();
             toggleDynamicOptions(prefix);
           });
-          document.querySelectorAll(`input[name="${prefix}FeeGrade"]`).forEach(r => {
-            r.addEventListener('change', () => populateTiers(prefix));
+          
           });
         };
         setup('sim');
