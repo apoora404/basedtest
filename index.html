@@ -99,10 +99,31 @@
       <button id="simulateBtn" class="w-full btn-accent p-2 rounded-xl font-semibold mt-4">시뮬레이션 실행</button>
     </div>
 
-    <!-- 거래 분석 입력 (시뮬 탭과 동일한 좌/우 구성) -->
+    <!-- 거래 분석 입력 (입력 방식: 거래량 / XP 토글 지원) -->
     <div id="analyzerInputs" class="hidden space-y-4 pt-4">
-      <p class="text-sm muted">실제 거래 후 누적 거래량을 기준으로 효율을 계산합니다.</p>
+      <p class="text-sm muted">실제 거래 후 효율을 분석합니다. 입력 방식을 선택하세요.</p>
+
+      <!-- 입력 방식 토글 -->
+      <div class="flex items-center gap-4 text-sm">
+        <span class="block text-xs muted">입력 방식</span>
+        <label class="flex items-center"><input type="radio" name="anInputMode" value="volume" checked> 거래량</label>
+        <label class="flex items-center"><input type="radio" name="anInputMode" value="xp"> XP</label>
+      </div>
+
       <div class="grid sm:grid-cols-2 gap-x-6 gap-y-4">
+        <div class="space-y-4">
+          <!-- 거래량 입력 -->
+          <div id="anVolInputs" class="grid grid-cols-2 gap-3">
+            <label class="block"><span class="block text-xs muted">이전 거래량 (누적, $)</span><input id="prevVol" type="number" step="0.01"></label>
+            <label class="block"><span class="block text-xs muted">현재 거래량 (누적, $)</span><input id="currVol" type="number" step="0.01"></label>
+          </div>
+          <!-- XP 입력 -->
+          <div id="anXpInputs" class="grid grid-cols-2 gap-3 hidden">
+            <label class="block"><span class="block text-xs muted">이전 XP (누적)</span><input id="prevXp" type="number" step="1"></label>
+            <label class="block"><span class="block text-xs muted">현재 XP (누적)</span><input id="currXp" type="number" step="1"></label>
+          </div>
+        </div>
+
         <div class="space-y-4">
           <div class="grid grid-cols-2 gap-3">
             <label class="block"><span class="block text-xs muted">거래 방식</span><select id="checkMode"><option value="perps">선물 (Perps)</option><option value="spot">현물 (Spot)</option></select></label>
@@ -114,12 +135,6 @@
               </div>
             </div>
           </div>
-          <div class="grid grid-cols-2 gap-3">
-            <label class="block"><span class="block text-xs muted">이전 거래량 (누적, $)</span><input id="prevVol" type="number" step="0.01"></label>
-            <label class="block"><span class="block text-xs muted">현재 거래량 (누적, $)</span><input id="currVol" type="number" step="0.01"></label>
-          </div>
-        </div>
-        <div class="space-y-4">
           <div>
             <span class="block text-xs muted mb-2">주문 종류</span>
             <div class="flex items-center gap-4 text-sm">
@@ -133,7 +148,7 @@
           <label class="block"><span class="block text-xs muted">XP 부스트</span><select id="checkBoost"><option value="0">0%</option><option value="25">25%</option><option value="50">50%</option><option value="60" selected>60%</option></select></label>
         </div>
       </div>
-      <button id="analyzeBtn" class="w-full btn-accent p-2 rounded-xl font-semibold mt-2">분석하기</button>
+      <button id="analyzeBtn" class="w-full btn-accent p-2 rounded-xl font-semibold mt-4">분석하기</button>
     </div>
   </section>
 
@@ -222,7 +237,7 @@ function runSimulation(){
   let tradeCountText = '—';
   if (startCapital > 0 && leverage > 0) {
     const pos = startCapital * leverage;
-    tradeCountText = pos > 0 ? `${d2(neededVol / pos)} 회` : '—';
+    tradeCountText = pos > 0 ? `${d2((neededVol / pos))} 회` : '—';
   }
 
   const feeRateData = ((mode==='spot')? FEES.spot.base_rate : FEES.perps.base_rate)[tier];
@@ -239,7 +254,6 @@ function runSimulation(){
   updateResultHeader(p);
   renderSimResult(p);
 }
-
 function renderSimResult(p){
   const rows = [
     `<div class="kv text-lg"><span class="k">목표 XP</span><span class="v num text-ok">${d2(p.targetXp)} XP</span></div>`,
@@ -259,6 +273,10 @@ function renderSimResult(p){
 }
 
 /* ===== Analyzer ===== */
+function getAnalyzerInputMode(){
+  const el = document.querySelector('input[name="anInputMode"]:checked');
+  return el ? el.value : 'volume';
+}
 function runAnalyzer(){
   const mode = $('checkMode').value;
   const spotType = (mode === 'spot') ? document.querySelector('input[name="checkSpotType"]:checked').value : 'normal';
@@ -266,10 +284,23 @@ function runAnalyzer(){
   const orderType = document.querySelector('input[name="checkOrderType"]:checked').value;
   const tier = Number($('checkTier').value || 0);
 
-  const usedVol = Math.max(0, Number($('currVol').value || 0) - Number($('prevVol').value || 0));
-  if (usedVol <= 0){ $('out').innerHTML = `<div class="text-sm muted">이전/현재 거래량을 입력해주세요.</div>`; return; }
+  const boostedRate = getBaseXpRate(mode, spotType) * (1 + boost/100);
 
-  const xp = usedVol * getBaseXpRate(mode, spotType) * (1 + boost/100);
+  let usedVol = 0;
+  if (getAnalyzerInputMode() === 'volume') {
+    const prevVol = Number($('prevVol').value || 0);
+    const currVol = Number($('currVol').value || 0);
+    usedVol = Math.max(0, currVol - prevVol);
+    if (usedVol <= 0){ $('out').innerHTML = `<div class="text-sm muted">이전/현재 거래량을 입력해주세요.</div>`; return; }
+  } else {
+    const prevXp = Number($('prevXp').value || 0);
+    const currXp = Number($('currXp').value || 0);
+    const gainedXp = Math.max(0, currXp - prevXp);
+    if (gainedXp <= 0){ $('out').innerHTML = `<div class="text-sm muted">이전/현재 XP를 입력해주세요.</div>`; return; }
+    usedVol = boostedRate > 0 ? (gainedXp / boostedRate) : 0;
+  }
+
+  const xp = usedVol * boostedRate;
 
   const feeRateData = ((mode==='spot')? FEES.spot.base_rate : FEES.perps.base_rate)[tier];
   const feeRate = feeRateData ? feeRateData[orderType] : 0;
@@ -288,7 +319,6 @@ function runAnalyzer(){
   updateResultHeader(p);
   renderAnalyzerResult(p);
 }
-
 function renderAnalyzerResult(p){
   const summary = `
     <div class="card rounded-xl p-3 bg-[#101217] border-[var(--border)] space-y-2 mb-4">
@@ -334,6 +364,12 @@ function toggleDynamicOptions(prefix){
   $(`${prefix}TierWrapper`).style.display = 'block';
   populateTiers(prefix);
 }
+function toggleAnalyzerInputMode(){
+  const mode = getAnalyzerInputMode();
+  $('anVolInputs').classList.toggle('hidden', mode !== 'volume');
+  $('anXpInputs').classList.toggle('hidden', mode !== 'xp');
+}
+
 function copyResultToClipboard(){
   if(!lastResultForExport) return;
   const p = lastResultForExport;
@@ -368,8 +404,13 @@ document.addEventListener('DOMContentLoaded', ()=>{
   $('simulateBtn').addEventListener('click',runSimulation);
   $('analyzeBtn').addEventListener('click',runAnalyzer);
 
-  $(`simMode`); // noop to avoid tree-shaking in some bundlers
+  // analyzer input mode toggle
+  document.querySelectorAll('input[name="anInputMode"]').forEach(r => {
+    r.addEventListener('change', toggleAnalyzerInputMode);
+  });
+  toggleAnalyzerInputMode();
 
+  // mode change handlers
   ['sim','check'].forEach(prefix=>{
     $(`${prefix}Mode`).addEventListener('change',()=>{
       if(prefix==='sim') toggleLeverage();
@@ -377,9 +418,9 @@ document.addEventListener('DOMContentLoaded', ()=>{
     });
   });
 
-  themeToggle.addEventListener('click',toggleTheme);
-  $('copyBtn').addEventListener('click',copyResultToClipboard);
-  $('pngBtn').addEventListener('click',saveResultAsPng);
+  themeToggle.addEventListener('click', toggleTheme);
+  $('copyBtn').addEventListener('click', copyResultToClipboard);
+  $('pngBtn').addEventListener('click', saveResultAsPng);
 
   applyTheme(localStorage.getItem('theme')||'dark');
   $('out').innerHTML = `<div class="text-sm muted">원하는 작업을 선택하고 값을 입력해주세요.</div>`;
