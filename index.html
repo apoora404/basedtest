@@ -54,27 +54,35 @@
 
   <!-- Links + Theme -->
   <div class="flex items-center gap-3">
-    <a href="https://upheaval.fi/portfolio?ref=ANDREW2" target="_blank" rel="noopener"
-       class="text-sm text-[var(--accent)] hover:underline">Upheaval</a>
-
-    <!-- Launch App button -->
+    <!-- Basedapp link (profile image) -->
     <a href="https://app.based.one/r/ANDREW2" target="_blank" rel="noopener"
-       class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--accent)] text-white text-sm font-medium hover:brightness-105">
-      <!-- rocket icon -->
-      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path d="M14 4l6 6-6 6-4-4-6 6 2-8 8-2z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
-      </svg>
-      Launch App
+       class="p-0.5 rounded-full border border-[var(--border)] bg-[var(--panel)] hover:brightness-110"
+       title="Open Basedapp">
+      <img src="https://pbs.twimg.com/profile_images/1945707037322575872/clYVc-L2_400x400.jpg"
+           alt="Basedapp" class="w-8 h-8 rounded-full object-cover"/>
     </a>
 
-    <!-- theme toggle -->
+    <!-- Upheaval link (profile image) -->
+    <a href="https://upheaval.fi/portfolio?ref=ANDREW2" target="_blank" rel="noopener"
+       class="p-0.5 rounded-full border border-[var(--border)] bg-[var(--panel)] hover:brightness-110"
+       title="Open Upheaval">
+      <img src="https://pbs.twimg.com/profile_images/1943206624879087617/U01ngr77_400x400.jpg"
+           alt="Upheaval" class="w-8 h-8 rounded-full object-cover"/>
+    </a>
+
+    <!-- Theme toggle -->
     <button id="theme-toggle"
       class="p-2 rounded-full bg-[var(--panel)] border border-[var(--border)]">
-      <svg id="theme-icon-light" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.706-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm-.707 7.072l.707-.707a1 1 0 10-1.414-1.414l-.707.707a1 1 0 101.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"/></svg>
-      <svg id="theme-icon-dark" class="w-5 h-5 hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/></svg>
+      <svg id="theme-icon-light" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+        <path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.706-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm-.707 7.072l.707-.707a1 1 0 10-1.414-1.414l-.707.707a1 1 0 101.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"/>
+      </svg>
+      <svg id="theme-icon-dark" class="w-5 h-5 hidden" fill="currentColor" viewBox="0 0 20 20">
+        <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/>
+      </svg>
     </button>
   </div>
 </header>
+
 
   <!-- Main -->
   <main class="max-w-6xl mx-auto px-4 space-y-6 lg:space-y-0 lg:grid lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-6">
@@ -610,5 +618,6 @@
   </script>
 </body>
 </html>
+
 
 
