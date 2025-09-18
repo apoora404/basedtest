@@ -15,12 +15,20 @@
       --ring: 0 0 0 3px rgba(255,106,61,.35); --input-bg: #101217;
     }
     [data-theme='light'] {
-      color-scheme: light;
-      --bg: #f0f2f5; --panel: #ffffff; --border: #dcdfe3;
-      --text-main: #1f2328; --text-muted: #656d76;
-      --accent: #f56565; --ok: #38a169; --danger: #e53e3e;
-      --ring: 0 0 0 3px rgba(245,101,101,.35); --input-bg: #f0f2f5;
-    }
+  color-scheme: light;
+  --bg: #f9f9fb;              /* 기본 배경 (밝은 톤) */
+  --panel: #ffffff;           /* 카드/패널 */
+  --border: #e5e7eb;          /* 테두리 */
+  --text-main: #1f2328;       /* 본문 텍스트 */
+  --text-muted: #6b7280;      /* 보조 텍스트 */
+
+  /* 주요 포인트 색상 (보라 + 블루) */
+  --accent: #4f46e5;          /* 버튼/강조 (보라 블루톤) */
+  --ok: #10b981;              /* 성공 (그린) */
+  --danger: #ef4444;          /* 에러/위험 (레드) */
+  --ring: 0 0 0 3px rgba(79,70,229,.35); /* 포커스 */
+  --input-bg: #f3f4f6;        /* 입력창 배경 */
+}
     body{ background: var(--bg); color: var(--text-main); transition: background .2s, color .2s; }
     .card{ background: var(--panel); border: 1px solid var(--border); }
     .muted{ color: var(--text-muted); }
@@ -618,6 +626,7 @@
   </script>
 </body>
 </html>
+
 
 
 
