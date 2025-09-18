@@ -47,6 +47,14 @@
     .text-danger{ color: var(--danger); }
     .tab{ padding:.5rem 1rem; border-bottom:2px solid transparent; color:var(--text-muted); cursor:pointer; transition:color .2s,border-color .2s; }
     .tab.active{ color:var(--accent); border-bottom-color:var(--accent); font-weight:600; }
+    #resultCard #out {
+      margin-top: 0.25rem !important; /* 기존 mt-3(0.75rem) → 0.25rem로 축소 */
+    }
+
+    /* (선택) 결과 첫 행은 더 붙여 보이게 */
+    #resultCard #out .kv:first-child {
+      margin-top: 0 !important;
+}
   </style>
 </head>
 <body class="pb-28">
@@ -626,6 +634,7 @@
   </script>
 </body>
 </html>
+
 
 
 
